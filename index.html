@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Trắc Nghiệm Tết Trung Thu Tương Tác</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Lexend:wght@300;400;500;600;700&display=swap');
+    body {
+      font-family: 'Lexend', sans-serif;
+      background: linear-gradient(135deg, #0f172a 0%, #1e1b4b 50%, #311042 100%);
+      min-height: 100vh;
+    }
+    .custom-radio:checked + label {
+      border-color: #f59e0b;
+      background-color: rgba(245, 158, 11, 0.15);
+      color: #fbbf24;
+    }
+  </style>
+</head>
+<body class="text-slate-100 flex flex-col justify-between p-4 sm:p-6">
+
+  <!-- Header -->
+  <header class="max-w-3xl mx-auto w-full text-center my-6">
+    <div class="inline-block p-3 bg-amber-500/20 rounded-full mb-3 border border-amber-500/30">
+      <span class="text-3xl">🥮</span>
+    </div>
+    <h1 class="text-3xl sm:text-4xl font-extrabold text-amber-400 tracking-tight">
+      Thử Thách Đố Vui Tết Trung Thu
+    </h1>
+    <p class="text-slate-300 mt-2 text-sm sm:text-base">
+      Kiểm tra kiến thức của bạn về truyền thống, ý nghĩa và phong tục Tết Trung Thu!
+    </p>
+  </header>
+
+  <!-- Main App Container -->
+  <main class="max-w-3xl mx-auto w-full bg-slate-900/80 backdrop-blur-md rounded-2xl p-5 sm:p-8 border border-amber-500/20 shadow-2xl mb-8">
+    
+    <!-- Quiz Header Control -->
+    <div class="flex flex-wrap justify-between items-center pb-4 mb-6 border-b border-slate-700/60 gap-4">
+      <div class="flex items-center space-x-2">
+        <span class="bg-amber-500/20 text-amber-300 text-xs font-semibold px-3 py-1 rounded-full border border-amber-500/30">
+          Tổng số câu hỏi: <span id="total-count">0</span>
+        </span>
+      </div>
+      <button id="shuffle-btn" onclick="resetAndShuffle()" class="flex items-center gap-2 bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-slate-950 font-bold text-sm px-4 py-2 rounded-xl transition-all transform active:scale-95 shadow-lg shadow-amber-500/20">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+        </svg>
+        Trộn Đề & Làm Lại
+      </button>
+    </div>
+
+    <!-- Questions Form -->
+    <form id="quiz-form" onsubmit="submitQuiz(event)">
+      <div id="questions-container" class="space-y-8">
+        <!-- Questions render here -->
+      </div>
+
+      <!-- Submit Button -->
+      <div class="mt-8 pt-6 border-t border-slate-700/60 text-center">
+        <button type="submit" id="submit-btn" class="w-full sm:w-auto px-8 py-3.5 bg-gradient-to-r from-amber-400 to-yellow-500 hover:from-amber-500 hover:to-yellow-600 text-slate-950 font-bold rounded-xl shadow-lg shadow-amber-500/25 transition-all transform hover:-translate-y-0.5 active:scale-95 text-base">
+          Nộp Bài Kiểm Tra
+        </button>
+      </div>
+    </form>
+
+    <!-- Result Banner -->
+    <div id="result-card" class="hidden mt-8 p-6 bg-slate-800/90 rounded-2xl border border-amber-500/40 text-center space-y-4">
+      <h2 class="text-2xl font-bold text-amber-400" id="result-title">Kết Quả Bài Làm</h2>
+      <div class="text-4xl font-extrabold text-white my-2" id="score-text">0 / 0</div>
+      <p class="text-slate-300 text-sm sm:text-base max-w-md mx-auto" id="result-message"></p>
+      <div class="pt-2">
+        <button onclick="resetAndShuffle()" class="px-6 py-2.5 bg-amber-500 hover:bg-amber-600 text-slate-950 font-bold rounded-xl transition-all">
+          Thử Lại Đề Khác
+        </button>
+      </div>
+    </div>
+  </main>
+
+  <footer class="text-center text-xs text-slate-400 pb-4">
+    © 2026 Interactive Quiz - Tết Trung Thu
+  </footer>
+
+  <script>
+    // Database of questions
+    const originalQuestions = [
+      {
+        id: 1,
+        question: "Tết Trung Thu diễn ra vào ngày Âm lịch nào hàng năm?",
+        options: [
+          { text: "Rằm tháng Tám (15/8 Âm lịch)", isCorrect: true, explanation: "Đêm rằm tháng 8 Âm lịch là lúc mặt trăng sáng nhất và tròn nhất trong năm." },
+          { text: "Rằm tháng Bảy (15/7 Âm lịch)", isCorrect: false, explanation: "15/7 Âm lịch là ngày Lễ Vu Lan hoặc Tết Trung Nguyên." },
+          { text: "Mùng một tháng Tám (1/8 Âm lịch)", isCorrect: false, explanation: "Trung Thu diễn ra vào giữa tháng (ngày Rằm), không phải đầu tháng." },
+          { text: "Rằm tháng Chạp (15/12 Âm lịch)", isCorrect: false, explanation: "Rằm tháng Chạp là ngày lễ cuối năm Âm lịch." }
+        ]
+      },
+      {
+        id: 2,
+        question: "Nhân vật cổ tích nào gắn liền với cây đa trên Mắt Trăng trong sự tích Trung Thu?",
+        options: [
+          { text: "Chú Cuội", isCorrect: true, explanation: "Chú Cuội vì níu giữ cây thuốc quý mà bị bay lên Cung Trăng." },
+          { text: "Thạch Sanh", isCorrect: false, explanation: "Thạch Sanh là nhân vật trong truyện cổ tích diệt Trăn tinh, Đại bàng." },
+          { text: "Chử Đồng Tử", isCorrect: false, explanation: "Chử Đồng Tử là một trong Tứ Bất Tử trong thần thoại Việt Nam." },
+          { text: "Sọ Dừa", isCorrect: false, explanation: "Sọ Dừa là nhân vật chính trong truyện cổ tích cùng tên." }
+        ]
+      },
+      {
+        id: 3,
+        question: "Theo quan niệm dân gian, ai là người đẹp sống ở Cung Trăng cùng chú Cuội?",
+        options: [
+          { text: "Chị Hằng (Hằng Nga)", isCorrect: true, explanation: "Hằng Nga (Chị Hằng) là tiên nữ gắn liền với truyền thuyết Cung Trăng." },
+          { text: "Thánh Mẫu", isCorrect: false, explanation: "Thánh Mẫu là tín ngưỡng thờ Nữ thần của người Việt." },
+          { text: "Công chúa Ngọc Hoa", isCorrect: false, explanation: "Ngọc Hoa là con gái vua Hùng trong truyện Sơn Tinh Thủy Tinh." },
+          { text: "Mị Nương", isCorrect: false, explanation: "Mị Nương là tên gọi chung của các công chúa thời Hùng Vương." }
+        ]
+      },
+      {
+        id: 4,
+        question: "Bánh Trung Thu truyền thống Việt Nam bao gồm hai loại chính nào?",
+        options: [
+          { text: "Bánh nướng và Bánh dẻo", isCorrect: true, explanation: "Hai loại bánh truyền thống biểu tượng cho mặt trời và mặt trăng." },
+          { text: "Bánh chưng và Bánh giầy", isCorrect: false, explanation: "Bánh chưng và bánh giầy là món ăn truyền thống dịp Tết Nguyên Đán." },
+          { text: "Bánh pía và Bánh in", isCorrect: false, explanation: "Đây là đặc sản của miền Tây/miền Trung nhưng không phải cặp bánh đặc trưng nhất." },
+          { text: "Bánh trôi và Bánh Veget", isCorrect: false, explanation: "Bánh trôi bánh chay gắn liền với Tết Hàn Thực (3/3 Âm lịch)." }
+        ]
+      },
+      {
+        id: 5,
+        question: "Món đồ chơi truyền thống Tết Trung Thu làm bằng giấy kiếng đỏ có hình con vật là gì?",
+        options: [
+          { text: "Đèn ông sao", isCorrect: true, explanation: "Đèn ông sao 5 cánh làm bằng tre và giấy bóng kính là biểu tượng kinh điển." },
+          { text: "Tò he", isCorrect: false, explanation: "Tò he làm từ bột tẻ nhuộm màu, không phải làm từ giấy kiếng." },
+          { text: "Đèn hoa đăng", isCorrect: false, explanation: "Đèn hoa đăng thường thả dưới nước vào các dịp lễ hội thả đèn." },
+          { text: "Mặt nạ giấy bồi", isCorrect: false, explanation: "Mặt nạ giấy bồi vẽ hình Ông Địa, Chú Tễu chứ không phải hình ngôi sao." }
+        ]
+      },
+      {
+        id: 6,
+        question: "Hoạt động sôi động náo nhiệt nhất trên đường phố trong đêm Rằm Trung Thu là gì?",
+        options: [
+          { text: "Múa Lân - Sư - Rồng", isCorrect: true, explanation: "Múa Lân cùng tiếng trống tưng bừng mang lại may mắn và niềm vui cho trẻ em." },
+          { text: "Thả hoa đăng trên sông", isCorrect: false, explanation: "Thả hoa đăng phổ biến hơn vào Rằm tháng Bảy hoặc Lễ Hội Đêm Rằm Hội An." },
+          { text: "Đua thuyền rồng", isCorrect: false, explanation: "Đua thuyền thường tổ chức vào dịp lễ hội đầu xuân hoặc Tết Đoan Ngọ." },
+          { text: "Hát Quan họ", isCorrect: false, explanation: "Hát Quan họ là dân ca miền Bắc, thường diễn ra ở hội lễ hội mùa xuân." }
+        ]
+      }
+    ];
+
+    let currentQuestions = [];
+
+    // Helper: Shuffle Array (Fisher-Yates)
+    function shuffleArray(array) {
+      const arr = [...array];
+      for (let i = arr.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [arr[i], arr[j]] = [arr[j], arr[i]];
+      }
+      return arr;
+    }
+
+    // Initialize & Render Quiz
+    function renderQuiz() {
+      // Deep clone and shuffle questions
+      currentQuestions = shuffleArray(originalQuestions).map(q => {
+        return {
+          ...q,
+          options: shuffleArray(q.options)
+        };
+      });
+
+      document.getElementById('total-count').textContent = currentQuestions.length;
+      const container = document.getElementById('questions-container');
+      container.innerHTML = '';
+
+      currentQuestions.forEach((q, qIndex) => {
+        const qCard = document.createElement('div');
+        qCard.className = 'bg-slate-800/60 p-5 sm:p-6 rounded-xl border border-slate-700/80 hover:border-amber-500/30 transition-all';
+        
+        let optionsHTML = '';
+        q.options.forEach((opt, optIndex) => {
+          const inputId = `q_${qIndex}_opt_${optIndex}`;
+          const inputName = `question_${qIndex}`;
+          optionsHTML += `
+            <div class="relative">
+              <input type="radio" id="${inputId}" name="${inputName}" value="${optIndex}" class="custom-radio sr-only" required>
+              <label for="${inputId}" class="flex items-start p-3.5 rounded-xl bg-slate-900/60 border border-slate-700/70 text-slate-200 text-sm sm:text-base cursor-pointer hover:bg-slate-800 hover:border-slate-500 transition-all">
+                <span class="inline-flex items-center justify-center w-5 h-5 rounded-full border border-slate-500 text-xs font-bold mr-3 mt-0.5 text-slate-400">
+                  ${String.fromCharCode(65 + optIndex)}
+                </span>
+                <span class="flex-1">${opt.text}</span>
+              </label>
+            </div>
+          `;
+        });
+
+        qCard.innerHTML = `
+          <div class="flex items-start gap-3 mb-4">
+            <span class="flex-shrink-0 w-8 h-8 rounded-lg bg-amber-500/20 text-amber-400 font-bold text-sm flex items-center justify-center border border-amber-500/30">
+              ${qIndex + 1}
+            </span>
+            <h3 class="text-base sm:text-lg font-semibold text-white pt-1">
+              ${q.question}
+            </h3>
+          </div>
+          <div class="grid grid-cols-1 gap-3 ml-0 sm:ml-11">
+            ${optionsHTML}
+          </div>
+          <div id="explanation_${qIndex}" class="hidden ml-0 sm:ml-11 mt-4 p-3.5 rounded-xl text-xs sm:text-sm"></div>
+        `;
+
+        container.appendChild(qCard);
+      });
+
+      // Reset Result Banner
+      document.getElementById('result-card').classList.add('hidden');
+      document.getElementById('submit-btn').disabled = false;
+      document.getElementById('submit-btn').classList.remove('opacity-50', 'cursor-not-allowed');
+    }
+
+    // Submit Quiz Handler
+    function submitQuiz(e) {
+      e.preventDefault();
+      let score = 0;
+      const total = currentQuestions.length;
+
+      currentQuestions.forEach((q, qIndex) => {
+        const selectedOptIndex = document.querySelector(`input[name="question_${qIndex}"]:checked`)?.value;
+        const expDiv = document.getElementById(`explanation_${qIndex}`);
+        expDiv.classList.remove('hidden');
+
+        if (selectedOptIndex !== undefined) {
+          const selectedObj = q.options[selectedOptIndex];
+          
+          if (selectedObj.isCorrect) {
+            score++;
+            expDiv.className = 'ml-0 sm:ml-11 mt-4 p-3.5 rounded-xl text-xs sm:text-sm bg-emerald-950/60 border border-emerald-500/40 text-emerald-200';
+            expDiv.innerHTML = `<strong> chính xác!</strong> ${selectedObj.explanation}`;
+          } else {
+            const correctOpt = q.options.find(o => o.isCorrect);
+            expDiv.className = 'ml-0 sm:ml-11 mt-4 p-3.5 rounded-xl text-xs sm:text-sm bg-rose-950/60 border border-rose-500/40 text-rose-200';
+            expDiv.innerHTML = `<strong> Chưa đúng!</strong> Đáp án đúng là: <b>${correctOpt.text}</b>.<br><span class="text-slate-300 mt-1 inline-block">${correctOpt.explanation}</span>`;
+          }
+        }
+      });
+
+      // Show Result Summary
+      const resultCard = document.getElementById('result-card');
+      const scoreText = document.getElementById('score-text');
+      const resultMsg = document.getElementById('result-message');
+      
+      scoreText.textContent = `${score} / ${total}`;
+      const percentage = (score / total) * 100;
+
+      if (percentage === 100) {
+        resultMsg.textContent = "Xuất sắc! Bạn là một chuyên gia thực sự về Tết Trung Thu!";
+      } else if (percentage >= 70) {
+        resultMsg.textContent = "Giỏi lắm! Bạn hiểu biết rất rõ về các phong tục Trung Thu.";
+      } else if (percentage >= 50) {
+        resultMsg.textContent = "Khá lắm! Bạn đã nắm được những kiến thức cơ bản.";
+      } else {
+        resultMsg.textContent = "Đừng buồn, hãy thử trộn lại đề và làm lại để đạt điểm cao hơn nhé!";
+      }
+
+      resultCard.classList.remove('hidden');
+      resultCard.scrollIntoView({ behavior: 'smooth' });
+
+      // Disable submit button after scoring
+      document.getElementById('submit-btn').disabled = true;
+      document.getElementById('submit-btn').classList.add('opacity-50', 'cursor-not-allowed');
+    }
+
+    // Reset & Reshuffle Quiz
+    function resetAndShuffle() {
+      renderQuiz();
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    // Initial Load
+    renderQuiz();
+  </script>
+</body>
+</html>
+```eof
+
+Tệp Web ứng dụng trắc nghiệm Tết Trung Thu đã được tạo thành công!
+
+**Các tính năng nổi bật của file này:**
+1. **Tương tác trực tiếp**: Cho phép người dùng làm bài, chọn câu trả lời và xem giải thích chi tiết ngay sau khi nộp bài.
+2. **Xáo đề tự động**: Mỗi khi bấm nút **"Trộn Đề & Làm Lại"**, thứ tự các câu hỏi cũng như thứ tự các đáp án A, B, C, D sẽ được đảo ngẫu nhiên hoàn toàn.
