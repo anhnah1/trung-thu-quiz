@@ -1,8 +1,9 @@
 <!DOCTYPE html>
-<html lang="vi">
+<html lang="vi" class="notranslate" translate="no">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="google" content="notranslate">
   <title>Trắc Nghiệm Trung Thu Việt Nam 🥮</title>
   
   <!-- Firebase SDK v8 -->
@@ -171,7 +172,7 @@
         Thử thách 30 câu hỏi ngẫu nhiên trong ngân hàng 100 câu hỏi thuần Việt (30 phút).
       </p>
       <input type="text" id="player-name" placeholder="Nhập họ và tên..." maxlength="30" autocomplete="off">
-      <button id="btn-start">Bắt Đầu Làm Bài 🚀</button>
+      <button id="btn-bat-dau">Bắt Đầu Làm Bài 🚀</button>
     </div>
 
     <!-- 2. MÀN HÌNH CÂU HỎI -->
@@ -185,7 +186,7 @@
       
       <div class="options" id="options-container"></div>
 
-      <button id="next-btn">Câu Tiếp Theo ➔</button>
+      <button id="btn-tiep-theo">Câu Tiếp Theo ➔</button>
     </div>
 
     <!-- 3. MÀN HÌNH KẾT QUẢ & BẢNG XẾP HẠNG -->
@@ -220,102 +221,94 @@
   </div>
 
   <script>
-    document.addEventListener('DOMContentLoaded', function() {
-      // LINK DATABASE DÀNH RIÊNG CHO SERVER KHU VỰC CHÂU Á
-      const rtdbUrl = "https://dulieu-327e5-default-rtdb.asia-southeast1.firebasedatabase.app";
-      
-      // KHỞI TẠO FIREBASE
-      const firebaseConfig = { databaseURL: rtdbUrl };
-      if (!firebase.apps.length) {
-        firebase.initializeApp(firebaseConfig);
-      }
-      // Khởi tạo DB ép chính xác URL vùng asia-southeast1
-      const db = firebase.database(rtdbUrl);
-
-      // NGÂN HÀNG 100 CÂU HỎI THUẦN VIỆT
-      const rawQuestionBank = [
-        { q: "Chú Cuội gắn liền với hình ảnh cây gì dưới gốc nguyệt?", a: ["Cây Đa", "Cây Bàng", "Cây Tre", "Cây Đào"], correct: 0 },
-        { q: "Tết Trung Thu diễn ra vào ngày mấy Âm lịch hàng năm?", a: ["15/8", "15/7", "1/8", "30/8"], correct: 0 },
-        { q: "Nhân vật nào thường đi kèm với Chú Cuội trên Cung Trăng?", a: ["Hằng Nga", "Tấm", "Mị Nương", "Thị Nở"], correct: 0 },
-        { q: "Con vật nào được coi là bạn đồng hành cùng Hằng Nga trên Cung Trăng?", a: ["Thỏ Ngọc", "Mèo Máy", "Chó Vàng", "Cáo Tuyết"], correct: 0 },
-        { q: "Thức bánh truyền thống không thể thiếu trong dịp Tết Trung Thu Việt Nam là gì?", a: ["Bánh Nướng & Bánh Dẻo", "Bánh Chưng", "Bánh Giầy", "Bánh Bò"], correct: 0 },
-        { q: "Loại đèn chơi Trung Thu truyền thống nào tự quay nhờ sức nóng của nến?", a: ["Đèn Kéo Quân", "Đèn Ông Sao", "Đèn Cá Chép", "Đèn Lồng Giấy"], correct: 0 },
-        { q: "Hình ảnh Lân - Sư - Rồng múa vào đêm Trung Thu tượng trưng cho điều gì?", a: ["May mắn & Thịnh vượng", "Sự xui xẻo", "Cầu mưa", "Xua đuổi mùa màng"], correct: 0 },
-        { q: "Trẻ em Việt Nam thường thực hiện hoạt động nào vào đêm Rằm Trung Thu?", a: ["Rước đèn phá cỗ", "Hái lộc", "Xông nhà", "Thả hoa đăng"], correct: 0 },
-        { q: "Theo truyền thuyết dân gian, Chú Cuội bị kéo lên Cung Trăng vì lý do gì?", a: ["Níu giữ cây thuốc quý", "Ước nguyện với mặt trăng", "Bị rồng tha đi", "Trèo cây hái quả"], correct: 0 },
-        { q: "Đồ chơi dân gian Trung Thu làm bằng bột gạo nhuộm màu gọi là gì?", a: ["Tò he", "Búp bê", "Mặt nạ giấy", "Đèn lon"], correct: 0 },
-        { q: "Tết Trung Thu còn được gọi bằng tên nào thể hiện sự đoàn tụ gia đình?", a: ["Tết Đoàn Viên", "Tết Hàn Thực", "Tết Trùng Cửu", "Tết Đoan Ngọ"], correct: 0 },
-        { q: "Loại quả thường được tỉa thành hình con chó xù trong mâm cỗ Trung Thu là gì?", a: ["Quả Bưởi", "Quả Hồng", "Quả Dưa hấu", "Quả Đu đủ"], correct: 0 },
-        { q: "Nhân vật bụng to, tay cầm quạt giấy nhảy múa vui vẻ cùng Kỳ Lân là ai?", a: ["Ông Địa", "Chú Cuội", "Trạng Tí", "Thần Tài"], correct: 0 },
-        { q: "Tết Trung Thu ở Việt Nam xuất phát từ nền văn hóa nông nghiệp nào?", a: ["Văn minh lúa nước", "Văn minh du mục", "Văn minh công nghiệp", "Văn minh thương nghiệp"], correct: 0 },
-        { q: "Lá cây thuốc của Chú Cuội trong truyền thuyết có khả năng đặc biệt gì?", a: ["Cải tử hoàn sinh", "Tăng sức mạnh", "Tàng hình", "Bay lên trời"], correct: 0 },
-        { q: "Tục ngữ/dân ca Việt Nam có câu: 'Tháng Tám rước đèn...'", a: ["Phá cỗ", "Đá bóng", "Thả diều", "Trồng cây"], correct: 0 },
-        { q: "Nhân bánh nướng truyền thống thập cẩm kiểu Việt Nam thường có nguyên liệu gì?", a: ["Lạp xưởng, mứt mỡ, hạt điều, mứt mứt...", "Sô-cô-la", "Trà xanh kem", "Phô mai chảy"], correct: 0 },
-        { q: "Màu sắc đặc trưng bên ngoài của vỏ Bánh Dẻo truyền thống là gì?", a: ["Màu trắng tinh / trắng ngà", "Màu nâu vàng", "Màu xanh lá", "Màu đỏ mận"], correct: 0 },
-        { q: "Bài hát 'Rước đèn tháng Tám' có câu mở đầu như thế nào?", a: ["Tết Trung Thu rước đèn đi chơi", "Đêm nay trăng sáng muôn màu", "Bóng trăng tròn xòe", "Trung Thu liên hoan"], correct: 0 },
-        { q: "Chiếc Đèn Ông Sao truyền thống có mấy cánh?", a: ["5 cánh", "6 cánh", "4 cánh", "8 cánh"], correct: 0 },
-        { q: "Lễ hội Trung Thu lớn nhất Việt Nam với các mô hình đèn khổng lồ diễn ra ở đâu?", a: ["Tuyên Quang", "Hà Nội", "Đà Nẵng", "Cần Thơ"], correct: 0 },
-        { q: "Con phố cổ nổi tiếng nhất Hà Nội về đồ chơi Trung Thu cổ truyền là gì?", a: ["Phố Hàng Mã", "Phố Tràng Tiền", "Phố Hàng Bông", "Phố Khâm Thiên"], correct: 0 },
-        { q: "Trứng muối tròn đỏ trong bánh Trung Thu tượng trưng cho điều gì?", a: ["Trăng tròn viên mãn", "Mặt trời rực rỡ", "Sự may mắn", "Tiền tài"], correct: 0 },
-        { q: "Trẻ em phá cỗ Trung Thu vào thời điểm nào trong ngày?", a: ["Đêm Rằm (khi trăng lên cao)", "Sáng sớm", "Buổi trưa", "Nửa đêm rạng sáng"], correct: 0 },
-        { q: "Người lớn tuổi ở Việt Nam xưa thường làm gì trong đêm Trung Thu?", a: ["Ngắm trăng, thưởng trà, làm thơ", "Đi gặt lúa", "Đi săn bắn", "Tảo mộ"], correct: 0 },
-        { q: "Bánh Dẻo truyền thống được làm từ loại bột nào?", a: ["Bột gạo nếp rang chín", "Bột mì", "Bột năng", "Bột ngô"], correct: 0 },
-        { q: "Nước đường dùng trộn vỏ Bánh Nướng truyền thống thường được chuẩn bị ra sao?", a: ["Nấu trước nhiều tháng hoặc hàng năm", "Dùng nước đường tươi", "Dùng đường cát khô", "Dùng mật ong tươi"], correct: 0 },
-        { q: "Trong văn hóa Việt Nam, Tết Trung Thu diễn ra vào mùa nào?", a: ["Mùa Thu", "Mùa Xuân", "Mùa Hạ", "Mùa Đông"], correct: 0 },
-        { q: "Món ăn cốm xanh thơm dẻo gắn liền với mùa thu ở vùng nào Việt Nam?", a: ["Mùa thu Hà Nội / Miền Bắc", "Miền Tây", "Tây Nguyên", "Miền Trung"], correct: 0 },
-        { q: "Đồ chơi 'Đèn Lon' của trẻ em xưa làm từ vật liệu gì?", a: ["Vỏ lon sữa bò cũ", "Nhựa cứng", "Gỗ gụ", "Giấy bìa carton"], correct: 0 },
-        { q: "Đèn Kéo Quân chuyển động xoay tròn nhờ nguyên lý nào?", a: ["Sức nóng không khí đối lưu", "Chạy bằng pin", "Dùng dây cót", "Quạt gió ngoài"], correct: 0 },
-        { q: "Chú Cuội trong sự tích đã cứu con vật nào bằng lá cây thần?", a: ["Hổ con", "Rắn nhỏ", "Chó rừng", "Chim đại bàng"], correct: 0 },
-        { q: "Mặt nạ truyền thống Trung Thu ở Việt Nam thường làm bằng chất liệu gì?", a: ["Giấy bồi", "Nhựa silicon", "Kim loại", "Vải bông"], correct: 0 },
-        { q: "Tiếng trống múa Lân đêm Trung Thu có nhịp điệu ra sao?", a: ["Dồn dập, rộn rã", "Chậm rãi, u buồn", "Thong thả", "Êm dịu"], correct: 0 },
-        { q: "Thắp nến bên trong Đèn Ông Sao tượng trưng cho điều gì?", a: ["Ánh sáng tri thức và may mắn", "Xua đuổi muỗi", "Tiết kiệm", "Lửa trại"], correct: 0 },
-        { q: "Tết Cúng Trăng của người Khmer Nam Bộ dịp Trung Thu có tên là gì?", a: ["Lễ Ok Om Bok", "Lễ Chol Chnam Thmay", "Lễ Sen Dolta", "Lễ Đôn-ta"], correct: 0 },
-        { q: "Bài hát thiếu nhi 'Chiếc đèn ông sao' do nhạc sĩ nào sáng tác?", a: ["Phạm Tuyên", "Trịnh Công Sơn", "Văn Cao", "Hoàng Vân"], correct: 0 },
-        { q: "Quả Hồng đỏ chín mọng trên mâm cỗ Trung Thu tượng trưng cho điều gì?", a: ["Sự hy vọng và may mắn", "Sự giàu có", "Sự dũng cảm", "Sự trường thọ"], correct: 0 },
-        { q: "Trăng Rằm tháng Tám có đặc điểm gì nổi bật?", a: ["Tròn nhất và sáng nhất trong năm", "To nhất năm", "Có màu đỏ", "Nhỏ nhất trong năm"], correct: 0 },
-        { q: "Khi thưởng nguyệt đêm Trung Thu, người Việt xưa thường uống trà gì?", a: ["Trà ướp hoa cúc / Trà sen", "Trà sữa", "Trà đắng", "Trà gừng"], correct: 0 },
-        { q: "Bánh Nướng khi nướng xong có màu gì quyến rũ?", a: ["Màu nâu vàng / Cánh gián", "Màu đen tuyền", "Màu đỏ tươi", "Màu trắng ngà"], correct: 0 },
-        { q: "Sự tích Chú Cuội nhắc nhở con người bài học gì?", a: ["Trân trọng cây quý & giữ gìn môi trường", "Lòng tham", "Sự dũng cảm", "Tính trung thực"], correct: 0 },
-        { q: "Mâm ngũ quả Trung Thu thường có mấy loại quả tượng trưng?", a: ["5 loại quả", "3 loại quả", "7 loại quả", "10 loại quả"], correct: 0 },
-        { q: "Đèn Cá Chép trong Trung Thu gắn liền với tích cổ nào?", a: ["Cá chép hóa rồng / Vượt vũ môn", "Cá chép trông trăng", "Cá vàng ước nguyện", "Cá voi"], correct: 0 },
-        { q: "Bánh đậu xanh trứng muối có vị kết hợp độc đáo nào?", a: ["Bùi ngọt của đậu xanh & béo mặn của trứng", "Chua cay", "Đắng ngọt", "Chua ngọt"], correct: 0 },
-        { q: "Hoạt động thả đèn hoa đăng đêm Trung Thu thường diễn ra ở đâu?", a: ["Trên dòng sông, mặt hồ", "Trên ngọn núi", "Trong sân nhà", "Trên mái nhà"], correct: 0 },
-        { q: "Món đồ chơi bằng sắt tây phát ra tiếng kêu tạch tạch ngày xưa là gì?", a: ["Thỏ đánh trống / Trống sắt", "Xe gỗ", "Súng nước", "Kèn nhựa"], correct: 0 },
-        { q: "Đầu Lân dùng trong điệu múa Lân Việt Nam hay có màu chủ đạo nào?", a: ["Đỏ, Vàng, Xanh, Trắng", "Chỉ có màu Đen", "Màu Xám", "Màu Tím"], correct: 0 },
-        { q: "Nguồn sáng cắm trong lòng lồng đèn Trung Thu truyền thống là gì?", a: ["Nến (đèn cầy)", "Đèn pin", "Đèn dầu lớn", "Dạ quang"], correct: 0 },
-        { q: "Trò chơi dân gian rộn rã nào hay tổ chức đêm hội Trung Thu?", a: ["Kéo co, bịt mắt bắt dê", "Đua thuyền trên bãi cát", "Thả diều đêm", "Trượt tuyết"], correct: 0 },
-        { q: "Bài thơ nổi tiếng 'Muốn làm thằng Cuội' do ai sáng tác?", a: ["Tản Đà", "Xuân Diệu", "Huy Cận", "Hàn Mặc Tử"], correct: 0 },
-        { q: "Đèn lồng giấy xếp Việt Nam có ưu điểm tiện lợi gì?", a: ["Xếp gọn lại được khi không dùng", "Không bao giờ cháy", "Tự phát sáng", "Chịu nước"], correct: 0 },
-        { q: "Mâm cỗ Trung Thu được dâng cúng ai trước khi phá cỗ?", a: ["Cúng Trăng và Tổ tiên", "Cúng thần Lộc", "Cúng Táo quân", "Cúng thần Biển"], correct: 0 },
-        { q: "Tục hát 'Trống Quân' đêm Trung Thu là hình thức sinh hoạt văn hóa gì?", a: ["Hát giao duyên nam nữ", "Hát ru con", "Hát ca trù", "Hát chầu văn"], correct: 0 },
-        { q: "Tết Trung Thu biểu tượng cho tình cảm gia đình nào sâu sắc nhất?", a: ["Sự đoàn tụ, gắn kết các thế hệ", "Sự chia xa", "Sự tranh đua", "Sự độc lập"], correct: 0 },
-        { q: "Hình ảnh Ông Địa bụng to mỉm cười trong múa Lân tượng trưng cho gì?", a: ["Đất đai màu mỡ, vạn vật ôn hòa", "Sự giận dữ", "Sự nghèo khó", "Sự may rủi"], correct: 0 },
-        { q: "Ý nghĩa của cụm từ 'Phá Cỗ' Trung Thu là gì?", a: ["Mọi người cùng thưởng thức mâm cỗ sau khi cúng trăng", "Làm hỏng cỗ", "Biếu cỗ đi xa", "Nấu cỗ mới"], correct: 0 },
-        { q: "Bánh Trung Thu hình tròn tượng trưng cho ước nguyện gì?", a: ["Sự đoàn viên, trọn vẹn", "Hình quả trái đất", "Mặt trời", "Chiếc đĩa"], correct: 0 },
-        { q: "Bánh Trung Thu hình vuông tượng trưng cho hình ảnh nào theo quan niệm dân gian?", a: ["Mặt Đất vững chãi", "Khối gạch", "Bánh chưng", "Hộp quà"], correct: 0 },
-        { q: "Chú Cuội trước khi lên Cung Trăng làm nghề gì ở trần gian?", a: ["Tiều phu đốn củi", "Thầy thuốc", "Nông dân", "Thợ săn"], correct: 0 },
-        { q: "Nhạc cụ nào đánh giữ nhịp cùng trống trong điệu múa Lân?", a: ["Chũm chọe (Xẻng)", "Đàn bầu", "Sáo trúc", "Đàn nguyệt"], correct: 0 },
-        { q: "Món quà Ông Địa hay lấy thưởng cho Lân khi trèo cao là gì?", a: ["Phong bao lì xì & bắp cải xanh", "Bánh nướng", "Quả bưởi", "Đèn lồng"], correct: 0 },
-        { q: "Trong Truyện Kiều, Nguyễn Du tả trăng thu bằng câu thơ nào?", a: ["Trăng thu bóng ngả dường tròn", "Vầng trăng ai xẻ làm đôi", "Long lóng đáy nước in trời", "Trăng tròn như đĩa"], correct: 0 },
-        { q: "Trong mâm cỗ Trung Thu, quả Na (Mãng cầu) tượng trưng cho mong ước gì?", a: ["Con cháu đông đúc, sinh sôi nảy nở", "Sự ngọt ngào", "Tiền tài", "Bình an"], correct: 0 },
-        { q: "Đồ chơi 'Trống bổi' Trung Thu làm bằng chất liệu gì?", a: ["Đất nung phết giấy hai mặt", "Nhựa", "Sắt tây", "Tre nứa"], correct: 0 },
-        { q: "Bài hát 'Đêm Trung Thu' có câu 'Thùng tùng rinh rinh...' tả tiếng gì?", a: ["Tiếng trống rước đèn", "Tiếng pháo hoa", "Tiếng chuông", "Tiếng sấm"], correct: 0 },
-        { q: "Nhân bánh Trung Thu chay phổ biến gồm nguyên liệu gì?", a: ["Đậu xanh, hạt sen, khoai môn", "Thịt heo quay", "Lạp xưởng", "Hải sản"], correct: 0 },
-        { q: "Hình con chó bưởi trong mâm cỗ thường làm mắt bằng hạt gì?", a: ["Hạt nhãn đen", "Hạt ngô", "Hạt đậu phộng", "Hạt dưa"], correct: 0 },
-        { q: "Loại hoa tỏa hương thơm nồng nàn đặc trưng mùa thu Hà Nội là gì?", a: ["Hoa sữa", "Hoa phượng", "Hoa đào", "Hoa mai"], correct: 0 },
-        { q: "Đèn lồng con cá chép gửi gắm ước mơ gì cho các em học sinh?", a: ["Cá chép hóa rồng (học hành đỗ đạc)", "Mua nhiều sách", "Đi du lịch", "Khỏe mạnh"], correct: 0 },
-        { q: "Trăng Rằm tháng Tám màu vàng sáng trong báo hiệu điều gì cho nông dân?", a: ["Năm đó trúng mùa trúng vụ", "Năm đó thiên tai", "Mất mùa", "Hạn hán"], correct: 0 },
-        { q: "Nét mặt của mặt nạ Ông Địa trong dân gian Việt Nam như thế nào?", a: ["Mỉm cười phúc hậu, hỉ hả", "Nghiêm nghị", "Giận dữ", "Buồn khóc"], correct: 0 },
-        { q: "Tết Trung Thu dành riêng cho trẻ em còn gọi là Tết gì?", a: ["Tết Nhi Đồng", "Tết Hàn Thực", "Tết Nguyên Tiêu", "Tết Khai Trường"], correct: 0 },
-        { q: "Bác Hồ gửi thư Trung Thu đầu tiên cho thiếu nhi vào năm nào?", a: ["Năm 1945", "Năm 1954", "Năm 1975", "Năm 1930"], correct: 0 },
-        { q: "Câu thơ 'Trung thu trăng sáng như gương / Bác Hồ ngắm cảnh nhớ thương nhi đồng' của ai?", a: ["Bác Hồ", "Tố Hữu", "Trần Đăng Khoa", "Xuân Diệu"], correct: 0 },
-        { q: "Phố lồng đèn nổi tiếng nhất TP. Hồ Chí Minh nằm ở đường nào?", a: ["Đường Lương Nhữ Học (Quận 5)", "Đường Nguyễn Huệ", "Đường Bùi Viện", "Đường Lê Lợi"], correct: 0 },
-        { q: "Trứng muối trong bánh nướng trước khi bọc nhân được xử lý thế nào?", a: ["Ngâm rượu mai quế lộ & nướng sơ", "Luộc nguyên quả", "Cắt nhỏ", "Chiên giòn"], correct: 0 },
-        { q: "Bài hát 'Thằng Cuội' của Lê Thương có câu: 'Bóng trăng trắng ngà, có cây đa to...'", a: ["Cuội ngồi gốc đa", "Cuội leo đỉnh núi", "Cuội bơi dưới sông", "Cuội trong nhà"], correct: 0 },
-        { q: "Nghệ nhân nặn Tò he Trung Thu thường tạo hình nhân vật nào?", a: ["Tôn Ngộ Không, Chú Cuội, Hằng Nga", "Xe ô tô", "Tàu vũ trụ", "Máy bay"], correct: 0 },
-        { q: "Bột làm Tò he truyền thống là sự kết hợp của hai loại bột nào?", a: ["Bột gạo nếp & bột gạo tẻ", "Bột mì & bột năng", "Bột bắp & bột mì", "Bột thạch"], correct: 0 },
-        { q: "Màu nhuộm Tò he truyền thống lấy từ nguồn nào?", a: ["Cây cỏ tự nhiên (gấc, lá nếp, nghệ)", "Sơn hóa chất", "Mực viết", "Phấn màu"], correct: 0 },
-        { q: "Mặt nạ giấy bồi truyền thống được làm qua các bước chính nào?", a: ["Bồi giấy lên khuôn, phơi khô, vẽ màu", "Đúc bằng nhựa", "Cắt bìa cứng", "Ép kim loại"], correct: 0 },
-        { q: "Làng nghề làm đồ chơi lồng đèn Báo Đáp nổi tiếng ở tỉnh nào?", a: ["Nam Định", "Bắc Ninh", "Quảng Nam", "An Giang"], correct: 0 },
-        { q: "Làng nghề làm trống Đọi Tam nổi tiếng thuộc tỉnh nào?", a: ["Hà Nam", "Thái Bình", "Hải Dương", "Hưng Yên"], correct: 0 },
-        { q: "Làng nghề nặn Tò he Xuân La nổi tiếng thuộc huyện nào ở Hà Nội?", a: ["Phú Xuyên
+    // NGÂN HÀNG 100 CÂU HỎI THUẦN VIỆT
+    const rawQuestionBank = [
+      { q: "Chú Cuội gắn liền với hình ảnh cây gì dưới gốc nguyệt?", a: ["Cây Đa", "Cây Bàng", "Cây Tre", "Cây Đào"], correct: 0 },
+      { q: "Tết Trung Thu diễn ra vào ngày mấy Âm lịch hàng năm?", a: ["15/8", "15/7", "1/8", "30/8"], correct: 0 },
+      { q: "Nhân vật nào thường đi kèm với Chú Cuội trên Cung Trăng?", a: ["Hằng Nga", "Tấm", "Mị Nương", "Thị Nở"], correct: 0 },
+      { q: "Con vật nào được coi là bạn đồng hành cùng Hằng Nga trên Cung Trăng?", a: ["Thỏ Ngọc", "Mèo Máy", "Chó Vàng", "Cáo Tuyết"], correct: 0 },
+      { q: "Thức bánh truyền thống không thể thiếu trong dịp Tết Trung Thu Việt Nam là gì?", a: ["Bánh Nướng & Bánh Dẻo", "Bánh Chưng", "Bánh Giầy", "Bánh Bò"], correct: 0 },
+      { q: "Loại đèn chơi Trung Thu truyền thống nào tự quay nhờ sức nóng của nến?", a: ["Đèn Kéo Quân", "Đèn Ông Sao", "Đèn Cá Chép", "Đèn Lồng Giấy"], correct: 0 },
+      { q: "Hình ảnh Lân - Sư - Rồng múa vào đêm Trung Thu tượng trưng cho điều gì?", a: ["May mắn & Thịnh vượng", "Sự xui xẻo", "Cầu mưa", "Xua đuổi mùa màng"], correct: 0 },
+      { q: "Trẻ em Việt Nam thường thực hiện hoạt động nào vào đêm Rằm Trung Thu?", a: ["Rước đèn phá cỗ", "Hái lộc", "Xông nhà", "Thả hoa đăng"], correct: 0 },
+      { q: "Theo truyền thuyết dân gian, Chú Cuội bị kéo lên Cung Trăng vì lý do gì?", a: ["Níu giữ cây thuốc quý", "Ước nguyện với mặt trăng", "Bị rồng tha đi", "Trèo cây hái quả"], correct: 0 },
+      { q: "Đồ chơi dân gian Trung Thu làm bằng bột gạo nhuộm màu gọi là gì?", a: ["Tò he", "Búp bê", "Mặt nạ giấy", "Đèn lon"], correct: 0 },
+      { q: "Tết Trung Thu còn được gọi bằng tên nào thể hiện sự đoàn tụ gia đình?", a: ["Tết Đoàn Viên", "Tết Hàn Thực", "Tết Trùng Cửu", "Tết Đoan Ngọ"], correct: 0 },
+      { q: "Loại quả thường được tỉa thành hình con chó xù trong mâm cỗ Trung Thu là gì?", a: ["Quả Bưởi", "Quả Hồng", "Quả Dưa hấu", "Quả Đu đủ"], correct: 0 },
+      { q: "Nhân vật bụng to, tay cầm quạt giấy nhảy múa vui vẻ cùng Kỳ Lân là ai?", a: ["Ông Địa", "Chú Cuội", "Trạng Tí", "Thần Tài"], correct: 0 },
+      { q: "Tết Trung Thu ở Việt Nam xuất phát từ nền văn hóa nông nghiệp nào?", a: ["Văn minh lúa nước", "Văn minh du mục", "Văn minh công nghiệp", "Văn minh thương nghiệp"], correct: 0 },
+      { q: "Lá cây thuốc của Chú Cuội trong truyền thuyết có khả năng đặc biệt gì?", a: ["Cải tử hoàn sinh", "Tăng sức mạnh", "Tàng hình", "Bay lên trời"], correct: 0 },
+      { q: "Tục ngữ/dân ca Việt Nam có câu: 'Tháng Tám rước đèn...'", a: ["Phá cỗ", "Đá bóng", "Thả diều", "Trồng cây"], correct: 0 },
+      { q: "Nhân bánh nướng truyền thống thập cẩm kiểu Việt Nam thường có nguyên liệu gì?", a: ["Lạp xưởng, mứt mỡ, hạt điều, mứt mứt...", "Sô-cô-la", "Trà xanh kem", "Phô mai chảy"], correct: 0 },
+      { q: "Màu sắc đặc trưng bên ngoài của vỏ Bánh Dẻo truyền thống là gì?", a: ["Màu trắng tinh / trắng ngà", "Màu nâu vàng", "Màu xanh lá", "Màu đỏ mận"], correct: 0 },
+      { q: "Bài hát 'Rước đèn tháng Tám' có câu mở đầu như thế nào?", a: ["Tết Trung Thu rước đèn đi chơi", "Đêm nay trăng sáng muôn màu", "Bóng trăng tròn xòe", "Trung Thu liên hoan"], correct: 0 },
+      { q: "Chiếc Đèn Ông Sao truyền thống có mấy cánh?", a: ["5 cánh", "6 cánh", "4 cánh", "8 cánh"], correct: 0 },
+      { q: "Lễ hội Trung Thu lớn nhất Việt Nam với các mô hình đèn khổng lồ diễn ra ở đâu?", a: ["Tuyên Quang", "Hà Nội", "Đà Nẵng", "Cần Thơ"], correct: 0 },
+      { q: "Con phố cổ nổi tiếng nhất Hà Nội về đồ chơi Trung Thu cổ truyền là gì?", a: ["Phố Hàng Mã", "Phố Tràng Tiền", "Phố Hàng Bông", "Phố Khâm Thiên"], correct: 0 },
+      { q: "Trứng muối tròn đỏ trong bánh Trung Thu tượng trưng cho điều gì?", a: ["Trăng tròn viên mãn", "Mặt trời rực rỡ", "Sự may mắn", "Tiền tài"], correct: 0 },
+      { q: "Trẻ em phá cỗ Trung Thu vào thời điểm nào trong ngày?", a: ["Đêm Rằm (khi trăng lên cao)", "Sáng sớm", "Buổi trưa", "Nửa đêm rạng sáng"], correct: 0 },
+      { q: "Người lớn tuổi ở Việt Nam xưa thường làm gì trong đêm Trung Thu?", a: ["Ngắm trăng, thưởng trà, làm thơ", "Đi gặt lúa", "Đi săn bắn", "Tảo mộ"], correct: 0 },
+      { q: "Bánh Dẻo truyền thống được làm từ loại bột nào?", a: ["Bột gạo nếp rang chín", "Bột mì", "Bột năng", "Bột ngô"], correct: 0 },
+      { q: "Nước đường dùng trộn vỏ Bánh Nướng truyền thống thường được chuẩn bị ra sao?", a: ["Nấu trước nhiều tháng hoặc hàng năm", "Dùng nước đường tươi", "Dùng đường cát khô", "Dùng mật ong tươi"], correct: 0 },
+      { q: "Trong văn hóa Việt Nam, Tết Trung Thu diễn ra vào mùa nào?", a: ["Mùa Thu", "Mùa Xuân", "Mùa Hạ", "Mùa Đông"], correct: 0 },
+      { q: "Món ăn cốm xanh thơm dẻo gắn liền với mùa thu ở vùng nào Việt Nam?", a: ["Mùa thu Hà Nội / Miền Bắc", "Miền Tây", "Tây Nguyên", "Miền Trung"], correct: 0 },
+      { q: "Đồ chơi 'Đèn Lon' của trẻ em xưa làm từ vật liệu gì?", a: ["Vỏ lon sữa bò cũ", "Nhựa cứng", "Gỗ gụ", "Giấy bìa carton"], correct: 0 },
+      { q: "Đèn Kéo Quân chuyển động xoay tròn nhờ nguyên lý nào?", a: ["Sức nóng không khí đối lưu", "Chạy bằng pin", "Dùng dây cót", "Quạt gió ngoài"], correct: 0 },
+      { q: "Chú Cuội trong sự tích đã cứu con vật nào bằng lá cây thần?", a: ["Hổ con", "Rắn nhỏ", "Chó rừng", "Chim đại bàng"], correct: 0 },
+      { q: "Mặt nạ truyền thống Trung Thu ở Việt Nam thường làm bằng chất liệu gì?", a: ["Giấy bồi", "Nhựa silicon", "Kim loại", "Vải bông"], correct: 0 },
+      { q: "Tiếng trống múa Lân đêm Trung Thu có nhịp điệu ra sao?", a: ["Dồn dập, rộn rã", "Chậm rãi, u buồn", "Thong thả", "Êm dịu"], correct: 0 },
+      { q: "Thắp nến bên trong Đèn Ông Sao tượng trưng cho điều gì?", a: ["Ánh sáng tri thức và may mắn", "Xua đuổi muỗi", "Tiết kiệm", "Lửa trại"], correct: 0 },
+      { q: "Tết Cúng Trăng của người Khmer Nam Bộ dịp Trung Thu có tên là gì?", a: ["Lễ Ok Om Bok", "Lễ Chol Chnam Thmay", "Lễ Sen Dolta", "Lễ Đôn-ta"], correct: 0 },
+      { q: "Bài hát thiếu nhi 'Chiếc đèn ông sao' do nhạc sĩ nào sáng tác?", a: ["Phạm Tuyên", "Trịnh Công Sơn", "Văn Cao", "Hoàng Vân"], correct: 0 },
+      { q: "Quả Hồng đỏ chín mọng trên mâm cỗ Trung Thu tượng trưng cho điều gì?", a: ["Sự hy vọng và may mắn", "Sự giàu có", "Sự dũng cảm", "Sự trường thọ"], correct: 0 },
+      { q: "Trăng Rằm tháng Tám có đặc điểm gì nổi bật?", a: ["Tròn nhất và sáng nhất trong năm", "To nhất năm", "Có màu đỏ", "Nhỏ nhất trong năm"], correct: 0 },
+      { q: "Khi thưởng nguyệt đêm Trung Thu, người Việt xưa thường uống trà gì?", a: ["Trà ướp hoa cúc / Trà sen", "Trà sữa", "Trà đắng", "Trà gừng"], correct: 0 },
+      { q: "Bánh Nướng khi nướng xong có màu gì quyến rũ?", a: ["Màu nâu vàng / Cánh gián", "Màu đen tuyền", "Màu đỏ tươi", "Màu trắng ngà"], correct: 0 },
+      { q: "Sự tích Chú Cuội nhắc nhở con người bài học gì?", a: ["Trân trọng cây quý & giữ gìn môi trường", "Lòng tham", "Sự dũng cảm", "Tính trung thực"], correct: 0 },
+      { q: "Mâm ngũ quả Trung Thu thường có mấy loại quả tượng trưng?", a: ["5 loại quả", "3 loại quả", "7 loại quả", "10 loại quả"], correct: 0 },
+      { q: "Đèn Cá Chép trong Trung Thu gắn liền với tích cổ nào?", a: ["Cá chép hóa rồng / Vượt vũ môn", "Cá chép trông trăng", "Cá vàng ước nguyện", "Cá voi"], correct: 0 },
+      { q: "Bánh đậu xanh trứng muối có vị kết hợp độc đáo nào?", a: ["Bùi ngọt của đậu xanh & béo mặn của trứng", "Chua cay", "Đắng ngọt", "Chua ngọt"], correct: 0 },
+      { q: "Hoạt động thả đèn hoa đăng đêm Trung Thu thường diễn ra ở đâu?", a: ["Trên dòng sông, mặt hồ", "Trên ngọn núi", "Trong sân nhà", "Trên mái nhà"], correct: 0 },
+      { q: "Món đồ chơi bằng sắt tây phát ra tiếng kêu tạch tạch ngày xưa là gì?", a: ["Thỏ đánh trống / Trống sắt", "Xe gỗ", "Súng nước", "Kèn nhựa"], correct: 0 },
+      { q: "Đầu Lân dùng trong điệu múa Lân Việt Nam hay có màu chủ đạo nào?", a: ["Đỏ, Vàng, Xanh, Trắng", "Chỉ có màu Đen", "Màu Xám", "Màu Tím"], correct: 0 },
+      { q: "Nguồn sáng cắm trong lòng lồng đèn Trung Thu truyền thống là gì?", a: ["Nến (đèn cầy)", "Đèn pin", "Đèn dầu lớn", "Dạ quang"], correct: 0 },
+      { q: "Trò chơi dân gian rộn rã nào hay tổ chức đêm hội Trung Thu?", a: ["Kéo co, bịt mắt bắt dê", "Đua thuyền trên bãi cát", "Thả diều đêm", "Trượt tuyết"], correct: 0 },
+      { q: "Bài thơ nổi tiếng 'Muốn làm thằng Cuội' do ai sáng tác?", a: ["Tản Đà", "Xuân Diệu", "Huy Cận", "Hàn Mặc Tử"], correct: 0 },
+      { q: "Đèn lồng giấy xếp Việt Nam có ưu điểm tiện lợi gì?", a: ["Xếp gọn lại được khi không dùng", "Không bao giờ cháy", "Tự phát sáng", "Chịu nước"], correct: 0 },
+      { q: "Mâm cỗ Trung Thu được dâng cúng ai trước khi phá cỗ?", a: ["Cúng Trăng và Tổ tiên", "Cúng thần Lộc", "Cúng Táo quân", "Cúng thần Biển"], correct: 0 },
+      { q: "Tục hát 'Trống Quân' đêm Trung Thu là hình thức sinh hoạt văn hóa gì?", a: ["Hát giao duyên nam nữ", "Hát ru con", "Hát ca trù", "Hát chầu văn"], correct: 0 },
+      { q: "Tết Trung Thu biểu tượng cho tình cảm gia đình nào sâu sắc nhất?", a: ["Sự đoàn tụ, gắn kết các thế hệ", "Sự chia xa", "Sự tranh đua", "Sự độc lập"], correct: 0 },
+      { q: "Hình ảnh Ông Địa bụng to mỉm cười trong múa Lân tượng trưng cho gì?", a: ["Đất đai màu mỡ, vạn vật ôn hòa", "Sự giận dữ", "Sự nghèo khó", "Sự may rủi"], correct: 0 },
+      { q: "Ý nghĩa của cụm từ 'Phá Cỗ' Trung Thu là gì?", a: ["Mọi người cùng thưởng thức mâm cỗ sau khi cúng trăng", "Làm hỏng cỗ", "Biếu cỗ đi xa", "Nấu cỗ mới"], correct: 0 },
+      { q: "Bánh Trung Thu hình tròn tượng trưng cho ước nguyện gì?", a: ["Sự đoàn viên, trọn vẹn", "Hình quả trái đất", "Mặt trời", "Chiếc đĩa"], correct: 0 },
+      { q: "Bánh Trung Thu hình vuông tượng trưng cho hình ảnh nào theo quan niệm dân gian?", a: ["Mặt Đất vững chãi", "Khối gạch", "Bánh chưng", "Hộp quà"], correct: 0 },
+      { q: "Chú Cuội trước khi lên Cung Trăng làm nghề gì ở trần gian?", a: ["Tiều phu đốn củi", "Thầy thuốc", "Nông dân", "Thợ săn"], correct: 0 },
+      { q: "Nhạc cụ nào đánh giữ nhịp cùng trống trong điệu múa Lân?", a: ["Chũm chọe (Xẻng)", "Đàn bầu", "Sáo trúc", "Đàn nguyệt"], correct: 0 },
+      { q: "Món quà Ông Địa hay lấy thưởng cho Lân khi trèo cao là gì?", a: ["Phong bao lì xì & bắp cải xanh", "Bánh nướng", "Quả bưởi", "Đèn lồng"], correct: 0 },
+      { q: "Trong Truyện Kiều, Nguyễn Du tả trăng thu bằng câu thơ nào?", a: ["Trăng thu bóng ngả dường tròn", "Vầng trăng ai xẻ làm đôi", "Long lóng đáy nước in trời", "Trăng tròn như đĩa"], correct: 0 },
+      { q: "Trong mâm cỗ Trung Thu, quả Na (Mãng cầu) tượng trưng cho mong ước gì?", a: ["Con cháu đông đúc, sinh sôi nảy nở", "Sự ngọt ngào", "Tiền tài", "Bình an"], correct: 0 },
+      { q: "Đồ chơi 'Trống bổi' Trung Thu làm bằng chất liệu gì?", a: ["Đất nung phết giấy hai mặt", "Nhựa", "Sắt tây", "Tre nứa"], correct: 0 },
+      { q: "Bài hát 'Đêm Trung Thu' có câu 'Thùng tùng rinh rinh...' tả tiếng gì?", a: ["Tiếng trống rước đèn", "Tiếng pháo hoa", "Tiếng chuông", "Tiếng sấm"], correct: 0 },
+      { q: "Nhân bánh Trung Thu chay phổ biến gồm nguyên liệu gì?", a: ["Đậu xanh, hạt sen, khoai môn", "Thịt heo quay", "Lạp xưởng", "Hải sản"], correct: 0 },
+      { q: "Hình con chó bưởi trong mâm cỗ thường làm mắt bằng hạt gì?", a: ["Hạt nhãn đen", "Hạt ngô", "Hạt đậu phộng", "Hạt dưa"], correct: 0 },
+      { q: "Loại hoa tỏa hương thơm nồng nàn đặc trưng mùa thu Hà Nội là gì?", a: ["Hoa sữa", "Hoa phượng", "Hoa đào", "Hoa mai"], correct: 0 },
+      { q: "Đèn lồng con cá chép gửi gắm ước mơ gì cho các em học sinh?", a: ["Cá chép hóa rồng (học hành đỗ đạc)", "Mua nhiều sách", "Đi du lịch", "Khỏe mạnh"], correct: 0 },
+      { q: "Trăng Rằm tháng Tám màu vàng sáng trong báo hiệu điều gì cho nông dân?", a: ["Năm đó trúng mùa trúng vụ", "Năm đó thiên tai", "Mất mùa", "Hạn hán"], correct: 0 },
+      { q: "Nét mặt của mặt nạ Ông Địa trong dân gian Việt Nam như thế nào?", a: ["Mỉm cười phúc hậu, hỉ hả", "Nghiêm nghị", "Giận dữ", "Buồn khóc"], correct: 0 },
+      { q: "Tết Trung Thu dành riêng cho trẻ em còn gọi là Tết gì?", a: ["Tết Nhi Đồng", "Tết Hàn Thực", "Tết Nguyên Tiêu", "Tết Khai Trường"], correct: 0 },
+      { q: "Bác Hồ gửi thư Trung Thu đầu tiên cho thiếu nhi vào năm nào?", a: ["Năm 1945", "Năm 1954", "Năm 1975", "Năm 1930"], correct: 0 },
+      { q: "Câu thơ 'Trung thu trăng sáng như gương / Bác Hồ ngắm cảnh nhớ thương nhi đồng' của ai?", a: ["Bác Hồ", "Tố Hữu", "Trần Đăng Khoa", "Xuân Diệu"], correct: 0 },
+      { q: "Phố lồng đèn nổi tiếng nhất TP. Hồ Chí Minh nằm ở đường nào?", a: ["Đường Lương Nhữ Học (Quận 5)", "Đường Nguyễn Huệ", "Đường Bùi Viện", "Đường Lê Lợi"], correct: 0 },
+      { q: "Trứng muối trong bánh nướng trước khi bọc nhân được xử lý thế nào?", a: ["Ngâm rượu mai quế lộ & nướng sơ", "Luộc nguyên quả", "Cắt nhỏ", "Chiên giòn"], correct: 0 },
+      { q: "Bài hát 'Thằng Cuội' của Lê Thương có câu: 'Bóng trăng trắng ngà, có cây đa to...'", a: ["Cuội ngồi gốc đa", "Cuội leo đỉnh núi", "Cuội bơi dưới sông", "Cuội trong nhà"], correct: 0 },
+      { q: "Nghệ nhân nặn Tò he Trung Thu thường tạo hình nhân vật nào?", a: ["Tôn Ngộ Không, Chú Cuội, Hằng Nga", "Xe ô tô", "Tàu vũ trụ", "Máy bay"], correct: 0 },
+      { q: "Bột làm Tò he truyền thống là sự kết hợp của hai loại bột nào?", a: ["Bột gạo nếp & bột gạo tẻ", "Bột mì & bột năng", "Bột bắp & bột mì", "Bột thạch"], correct: 0 },
+      { q: "Màu nhuộm Tò he truyền thống lấy từ nguồn nào?", a: ["Cây cỏ tự nhiên (gấc, lá nếp, nghệ)", "Sơn hóa chất", "Mực viết", "Phấn màu"], correct: 0 },
+      { q: "Mặt nạ giấy bồi truyền thống được làm qua các bước chính nào?", a: ["Bồi giấy lên khuôn, phơi khô, vẽ màu", "Đúc bằng nhựa", "Cắt bìa cứng", "Ép kim loại"], correct: 0 },
+      { q: "Làng nghề làm đồ chơi lồng đèn Báo Đáp nổi tiếng ở tỉnh nào?", a: ["Nam Định", "Bắc Ninh", "Quảng Nam", "An Giang"], correct: 0 },
+      { q: "Làng nghề làm trống Đọi Tam nổi tiếng thuộc tỉnh nào?", a: ["Hà Nam", "Thái Bình", "Hải Dương", "Hưng Yên"], correct: 0 },
+      { q: "Làng nghề nặn Tò he Xuân La nổi tiếng thuộc huyện nào ở Hà Nội?", a: ["Phú Xuyên", "Đông Anh", "Ba Vì", "Gia Lâm"], correct: 0 },
+      { q: "Trong bài hát 'Chiếc đèn ông sao', ngôi sao có màu sắc ra sao?", a: ["Sao 5 cánh tươi màu cán đỏ", "Sao vàng rực rỡ", "Sao xanh lá", "Sao tím"], correct: 0 },
+      { q: "Bánh Nướng sau 2-3 ngày có hiện tượng gì giúp vỏ bánh mềm thơm hơn?", a: ["Hiện tượng xuống dầu", "Bị giòn tan", "Bị cứng", "Bị mốc"], correct: 0 },
+      { q: "Hiện tượng 'xuống dầu' của Bánh Nướng có tác dụng gì?", a: ["Làm vỏ bánh mềm, mướt và màu ngả bóng đẹp", "Làm bánh giòn hơn", "Làm hết hạn", "Bớt ngọt"], correct: 0 },
+      { q: "Trong cỗ Trung Th
