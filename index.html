@@ -94,7 +94,6 @@
       background: #d97706;
     }
 
-    /* Thanh cố định thời gian & tiến độ */
     .sticky-header {
       position: sticky;
       top: 10px;
@@ -116,7 +115,6 @@
       font-size: 18px;
     }
 
-    /* Khung từng câu hỏi */
     .question-card {
       background: #1e293b;
       border: 1px solid #334155;
@@ -206,14 +204,13 @@
       <button type="button" id="btn-bat-dau" onclick="batDauLamBai()">Bắt Đầu Làm Bài 🚀</button>
     </div>
 
-    <!-- 2. MÀN HÌNH CÂU HỎI (HIỂN THỊ TẤT CẢ 30 CÂU) -->
+    <!-- 2. MÀN HÌNH CÂU HỎI -->
     <div id="quiz-screen" class="hidden">
       <div class="sticky-header">
         <span id="answered-count" style="color: #60a5fa;">Đã làm: 0/30</span>
         <span class="timer" id="timer-display">30:00</span>
       </div>
       
-      <!-- Nơi chứa toàn bộ 30 câu hỏi -->
       <div id="quiz-list-container"></div>
 
       <button type="button" id="btn-nop-bai" onclick="xacNhanNopBai()" style="margin-top: 10px; font-size: 18px; padding: 16px;">
@@ -253,7 +250,6 @@
   </div>
 
   <script>
-    // NGÂN HÀNG CÂU HỎI
     const rawQuestionBank = [
       { q: "Chú Cuội gắn liền với hình ảnh cây gì dưới gốc nguyệt?", a: ["Cây Đa", "Cây Bàng", "Cây Tre", "Cây Đào"], correct: 0 },
       { q: "Tết Trung Thu diễn ra vào ngày mấy Âm lịch hàng năm?", a: ["15/8", "15/7", "1/8", "30/8"], correct: 0 },
@@ -287,13 +283,12 @@
       { q: "Bài hát 'Đêm Trung Thu' có câu 'Thùng tùng rinh rinh...' tả tiếng gì?", a: ["Tiếng trống rước đèn", "Tiếng pháo hoa", "Tiếng chuông", "Tiếng sấm"], correct: 0 }
     ];
 
-    // BIẾN TOÀN CỤC
     let db = null;
     let playerName = "";
     let selectedQuestions = [];
-    let userAnswers = {}; // Lưu đáp án người dùng chọn
+    let userAnswers = {};
     let timerInterval = null;
-    let totalSeconds = 1800; // 30 phút
+    let totalSeconds = 1800;
 
     // KHỞI TẠO FIREBASE
     try {
@@ -304,10 +299,9 @@
         db = firebase.database();
       }
     } catch (e) {
-      console.error("Lỗi kết nối Firebase:", e);
+      console.error("Lỗi khởi tạo Firebase:", e);
     }
 
-    // BẮT ĐẦU LÀM BÀI
     function batDauLamBai() {
       const inputVal = document.getElementById('player-name').value.trim();
       if (!inputVal) {
@@ -318,19 +312,15 @@
       playerName = inputVal;
       userAnswers = {};
 
-      // Lấy 30 câu ngẫu nhiên
       selectedQuestions = [...rawQuestionBank].sort(() => 0.5 - Math.random()).slice(0, 30);
 
-      // Chuyển màn hình
       document.getElementById('start-screen').classList.add('hidden');
       document.getElementById('quiz-screen').classList.remove('hidden');
 
-      // Tạo danh sách 30 câu hỏi ra màn hình
       hienThiDanhSachCauHoi();
       chayDemGio();
     }
 
-    // TẠO DANH SÁCH 30 CÂU
     function hienThiDanhSachCauHoi() {
       const container = document.getElementById('quiz-list-container');
       container.innerHTML = '';
@@ -358,20 +348,17 @@
       });
     }
 
-    // CHỌN ĐÁP ÁN
     function chonDapAn(qIndex, optIndex) {
       const radio = document.getElementById(`q_${qIndex}_opt_${optIndex}`);
       if (radio) {
         radio.checked = true;
         userAnswers[qIndex] = optIndex;
         
-        // Cập nhật số câu đã làm
         const answeredCount = Object.keys(userAnswers).length;
         document.getElementById('answered-count').textContent = `Đã làm: ${answeredCount}/30`;
       }
     }
 
-    // ĐẾM GIỜ
     function chayDemGio() {
       const timerDisplay = document.getElementById('timer-display');
       timerInterval = setInterval(() => {
@@ -388,7 +375,6 @@
       }, 1000);
     }
 
-    // XÁC NHẬN NỘP BÀI
     function xacNhanNopBai() {
       const answeredCount = Object.keys(userAnswers).length;
       if (answeredCount < 30) {
@@ -400,7 +386,6 @@
       tinhDiemVaKetThuc();
     }
 
-    // TÍNH ĐIỂM & ĐỂN MÀN HÌNH KẾT QUẢ
     function tinhDiemVaKetThuc() {
       let score = 0;
       selectedQuestions.forEach((qObj, index) => {
@@ -424,11 +409,9 @@
       luuLenFirebase(playerName, score, usedTimeInSeconds, formattedTime);
     }
 
-    // LƯU LÊN FIREBASE
     function luuLenFirebase(name, scoreVal, timeSec, formattedTime) {
       if (!db) {
-        document.getElementById('leaderboard-body').innerHTML = 
-          '<tr><td colspan="4" style="text-align:center;">Không kết nối được Firebase.</td></tr>';
+        capNhatBXH();
         return;
       }
 
@@ -441,20 +424,33 @@
       }).then(() => {
         capNhatBXH();
       }).catch((err) => {
-        console.error("Lỗi lưu điểm:", err);
+        console.error("Lỗi khi lưu điểm:", err);
         capNhatBXH();
       });
     }
 
-    // DỌN DẸP LƯU TOP 10
+    // TẢI BẢNG XẾP HẠNG (ĐÃ TỐI ƯU CHỐNG TREO)
     function capNhatBXH() {
-      if (!db) return;
+      const tbody = document.getElementById('leaderboard-body');
+      
+      if (!db) {
+        tbody.innerHTML = '<tr><td colspan="4" style="text-align:center; color:#ef4444;">Không thể kết nối cơ sở dữ liệu.</td></tr>';
+        return;
+      }
 
-      db.ref('leaderboard').once('value').then(async (snapshot) => {
+      // Đặt timeout 5 giây nếu mạng quá chậm
+      const timeout = setTimeout(() => {
+        if (tbody.innerHTML.includes('Đang tải')) {
+          tbody.innerHTML = '<tr><td colspan="4" style="text-align:center; color:#ef4444;">Kết nối quá hạn hoặc sai Rules Firebase!</td></tr>';
+        }
+      }, 5000);
+
+      db.ref('leaderboard').once('value', (snapshot) => {
+        clearTimeout(timeout);
         const data = snapshot.val();
+        
         if (!data) {
-          document.getElementById('leaderboard-body').innerHTML = 
-            '<tr><td colspan="4" style="text-align:center;">Chưa có lượt chơi nào.</td></tr>';
+          tbody.innerHTML = '<tr><td colspan="4" style="text-align:center;">Chưa có lượt chơi nào.</td></tr>';
           return;
         }
 
@@ -463,18 +459,18 @@
           list.push({ id: key, ...data[key] });
         }
 
+        // Sắp xếp: Điểm cao > Thời gian ít > Thời gian nộp trước
         list.sort((a, b) => {
           if (b.score !== a.score) return b.score - a.score;
           if (a.timeUsed !== b.timeUsed) return a.timeUsed - b.timeUsed;
           return a.timestamp - b.timestamp;
         });
 
+        // Xóa các bản ghi thừa ngoài Top 10
         if (list.length > 10) {
-          const deletePromises = [];
           for (let i = 10; i < list.length; i++) {
-            deletePromises.push(db.ref('leaderboard/' + list[i].id).remove());
+            db.ref('leaderboard/' + list[i].id).remove();
           }
-          await Promise.all(deletePromises);
         }
 
         let top10 = list.slice(0, 10);
@@ -496,10 +492,14 @@
           `;
         });
 
-        document.getElementById('leaderboard-body').innerHTML = html;
+        tbody.innerHTML = html;
+      }, (error) => {
+        clearTimeout(timeout);
+        console.error("Lỗi lấy dữ liệu:", error);
+        tbody.innerHTML = '<tr><td colspan="4" style="text-align:center; color:#ef4444;">Lỗi truy cập dữ liệu (Bị chặn Rules).</td></tr>';
       });
     }
   </script>
 </body>
-              </html>
-  
+        </html>
+        
