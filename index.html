@@ -6,7 +6,7 @@
   <meta name="google" content="notranslate">
   <title>Trắc Nghiệm Trung Thu Việt Nam 🥮</title>
   
-  <!-- Firebase SDK v8 (Dùng CDNJS cực kỳ ổn định) -->
+  <!-- Firebase SDK v8 -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/firebase/8.10.1/firebase-app.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/firebase/8.10.1/firebase-database.min.js"></script>
 
@@ -25,18 +25,20 @@
       min-height: 100vh;
       display: flex;
       justify-content: center;
-      align-items: center;
+      align-items: flex-start;
       padding: 12px;
     }
 
     .container {
       width: 100%;
-      max-width: 600px;
+      max-width: 650px;
       background: rgba(30, 41, 59, 0.95);
       border: 2px solid #fbbf24;
       border-radius: 16px;
       padding: 20px;
       box-shadow: 0 10px 25px rgba(0, 0, 0, 0.6);
+      margin-top: 10px;
+      margin-bottom: 20px;
     }
 
     h1 {
@@ -92,16 +94,21 @@
       background: #d97706;
     }
 
-    .quiz-header {
+    /* Thanh cố định thời gian & tiến độ */
+    .sticky-header {
+      position: sticky;
+      top: 10px;
+      z-index: 100;
       display: flex;
       justify-content: space-between;
       align-items: center;
       background: #0f172a;
       padding: 12px 16px;
       border-radius: 10px;
-      margin-bottom: 16px;
+      margin-bottom: 20px;
       font-weight: bold;
-      border: 1px solid #334155;
+      border: 1px solid #fbbf24;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.5);
     }
 
     .timer {
@@ -109,35 +116,58 @@
       font-size: 18px;
     }
 
+    /* Khung từng câu hỏi */
+    .question-card {
+      background: #1e293b;
+      border: 1px solid #334155;
+      border-radius: 12px;
+      padding: 16px;
+      margin-bottom: 20px;
+    }
+
     .question-title {
-      font-size: 17px;
-      margin-bottom: 16px;
+      font-size: 16px;
+      font-weight: 600;
+      margin-bottom: 14px;
       line-height: 1.5;
-      color: #f1f5f9;
+      color: #fbbf24;
     }
 
     .options {
       display: flex;
       flex-direction: column;
-      gap: 12px;
-      margin-bottom: 20px;
+      gap: 10px;
     }
 
-    .option-btn {
+    .option-item {
+      display: flex;
+      align-items: center;
       background: #334155;
-      color: #fff;
-      text-align: left;
-      border: 1px solid #475569;
-      font-weight: normal;
       padding: 12px 14px;
-      line-height: 1.4;
       border-radius: 8px;
+      border: 1px solid #475569;
+      cursor: pointer;
+      transition: background 0.2s;
     }
 
-    .option-btn.selected {
-      background: #2563eb;
-      border-color: #60a5fa;
-      font-weight: bold;
+    .option-item:hover {
+      background: #475569;
+    }
+
+    .option-item input[type="radio"] {
+      margin-right: 12px;
+      width: 18px;
+      height: 18px;
+      accent-color: #fbbf24;
+      cursor: pointer;
+    }
+
+    .option-item label {
+      cursor: pointer;
+      font-size: 15px;
+      line-height: 1.4;
+      width: 100%;
+      color: #f1f5f9;
     }
 
     table {
@@ -176,18 +206,19 @@
       <button type="button" id="btn-bat-dau" onclick="batDauLamBai()">Bắt Đầu Làm Bài 🚀</button>
     </div>
 
-    <!-- 2. MÀN HÌNH CÂU HỎI -->
+    <!-- 2. MÀN HÌNH CÂU HỎI (HIỂN THỊ TẤT CẢ 30 CÂU) -->
     <div id="quiz-screen" class="hidden">
-      <div class="quiz-header">
-        <span id="question-count">Câu 1/30</span>
+      <div class="sticky-header">
+        <span id="answered-count" style="color: #60a5fa;">Đã làm: 0/30</span>
         <span class="timer" id="timer-display">30:00</span>
       </div>
       
-      <div class="question-title" id="question-text">Đang tải câu hỏi...</div>
-      
-      <div class="options" id="options-container"></div>
+      <!-- Nơi chứa toàn bộ 30 câu hỏi -->
+      <div id="quiz-list-container"></div>
 
-      <button type="button" id="btn-tiep-theo" onclick="chuyenCauHoi()">Câu Tiếp Theo ➔</button>
+      <button type="button" id="btn-nop-bai" onclick="xacNhanNopBai()" style="margin-top: 10px; font-size: 18px; padding: 16px;">
+        Nộp Bài Thi 🎯
+      </button>
     </div>
 
     <!-- 3. MÀN HÌNH KẾT QUẢ & BẢNG XẾP HẠNG -->
@@ -256,13 +287,11 @@
       { q: "Bài hát 'Đêm Trung Thu' có câu 'Thùng tùng rinh rinh...' tả tiếng gì?", a: ["Tiếng trống rước đèn", "Tiếng pháo hoa", "Tiếng chuông", "Tiếng sấm"], correct: 0 }
     ];
 
-    // BIẾN TOÀN CỤC GAME
+    // BIẾN TOÀN CỤC
     let db = null;
     let playerName = "";
     let selectedQuestions = [];
-    let currentQuestionIndex = 0;
-    let score = 0;
-    let selectedOption = null;
+    let userAnswers = {}; // Lưu đáp án người dùng chọn
     let timerInterval = null;
     let totalSeconds = 1800; // 30 phút
 
@@ -278,7 +307,7 @@
       console.error("Lỗi kết nối Firebase:", e);
     }
 
-    // NÚT BẮT ĐẦU
+    // BẮT ĐẦU LÀM BÀI
     function batDauLamBai() {
       const inputVal = document.getElementById('player-name').value.trim();
       if (!inputVal) {
@@ -287,19 +316,59 @@
       }
 
       playerName = inputVal;
+      userAnswers = {};
 
-      // Chọn ngẫu nhiên 30 câu hỏi
+      // Lấy 30 câu ngẫu nhiên
       selectedQuestions = [...rawQuestionBank].sort(() => 0.5 - Math.random()).slice(0, 30);
-      currentQuestionIndex = 0;
-      score = 0;
 
       // Chuyển màn hình
       document.getElementById('start-screen').classList.add('hidden');
       document.getElementById('quiz-screen').classList.remove('hidden');
 
-      // Bắt đầu đếm giờ & hiển thị câu hỏi
+      // Tạo danh sách 30 câu hỏi ra màn hình
+      hienThiDanhSachCauHoi();
       chayDemGio();
-      hienThiCauHoi();
+    }
+
+    // TẠO DANH SÁCH 30 CÂU
+    function hienThiDanhSachCauHoi() {
+      const container = document.getElementById('quiz-list-container');
+      container.innerHTML = '';
+
+      selectedQuestions.forEach((qObj, qIndex) => {
+        const card = document.createElement('div');
+        card.className = 'question-card';
+
+        let optionsHTML = '';
+        qObj.a.forEach((optText, optIndex) => {
+          optionsHTML += `
+            <div class="option-item" onclick="chonDapAn(${qIndex}, ${optIndex})">
+              <input type="radio" name="q_${qIndex}" id="q_${qIndex}_opt_${optIndex}" value="${optIndex}">
+              <label for="q_${qIndex}_opt_${optIndex}">${optText}</label>
+            </div>
+          `;
+        });
+
+        card.innerHTML = `
+          <div class="question-title">Câu ${qIndex + 1}: ${qObj.q}</div>
+          <div class="options">${optionsHTML}</div>
+        `;
+
+        container.appendChild(card);
+      });
+    }
+
+    // CHỌN ĐÁP ÁN
+    function chonDapAn(qIndex, optIndex) {
+      const radio = document.getElementById(`q_${qIndex}_opt_${optIndex}`);
+      if (radio) {
+        radio.checked = true;
+        userAnswers[qIndex] = optIndex;
+        
+        // Cập nhật số câu đã làm
+        const answeredCount = Object.keys(userAnswers).length;
+        document.getElementById('answered-count').textContent = `Đã làm: ${answeredCount}/30`;
+      }
     }
 
     // ĐẾM GIỜ
@@ -308,7 +377,8 @@
       timerInterval = setInterval(() => {
         if (totalSeconds <= 0) {
           clearInterval(timerInterval);
-          ketThucBaiThi();
+          alert("Hết giờ làm bài!");
+          tinhDiemVaKetThuc();
           return;
         }
         totalSeconds--;
@@ -318,57 +388,27 @@
       }, 1000);
     }
 
-    // HIỂN THỊ CÂU HỎI
-    function hienThiCauHoi() {
-      selectedOption = null;
-      const currentQ = selectedQuestions[currentQuestionIndex];
-      
-      document.getElementById('question-count').textContent = `Câu ${currentQuestionIndex + 1}/30`;
-      document.getElementById('question-text').textContent = currentQ.q;
+    // XÁC NHẬN NỘP BÀI
+    function xacNhanNopBai() {
+      const answeredCount = Object.keys(userAnswers).length;
+      if (answeredCount < 30) {
+        if (!confirm(`Bạn mới làm ${answeredCount}/30 câu. Bạn có chắc chắn muốn nộp bài sớm không?`)) {
+          return;
+        }
+      }
+      clearInterval(timerInterval);
+      tinhDiemVaKetThuc();
+    }
 
-      const container = document.getElementById('options-container');
-      container.innerHTML = '';
-
-      currentQ.a.forEach((optText, index) => {
-        const btn = document.createElement('button');
-        btn.className = 'option-btn';
-        btn.textContent = optText;
-        btn.onclick = () => {
-          document.querySelectorAll('.option-btn').forEach(b => b.classList.remove('selected'));
-          btn.classList.add('selected');
-          selectedOption = index;
-        };
-        container.appendChild(btn);
+    // TÍNH ĐIỂM & ĐỂN MÀN HÌNH KẾT QUẢ
+    function tinhDiemVaKetThuc() {
+      let score = 0;
+      selectedQuestions.forEach((qObj, index) => {
+        if (userAnswers[index] === qObj.correct) {
+          score++;
+        }
       });
 
-      if (currentQuestionIndex === selectedQuestions.length - 1) {
-        document.getElementById('btn-tiep-theo').textContent = "Nộp Bài 🎯";
-      }
-    }
-
-    // CHUYỂN CÂU HỎI
-    function chuyenCauHoi() {
-      if (selectedOption === null) {
-        alert("Vui lòng chọn 1 đáp án!");
-        return;
-      }
-
-      if (selectedOption === selectedQuestions[currentQuestionIndex].correct) {
-        score++;
-      }
-
-      currentQuestionIndex++;
-
-      if (currentQuestionIndex < selectedQuestions.length) {
-        hienThiCauHoi();
-      } else {
-        clearInterval(timerInterval);
-        ketThucBaiThi();
-      }
-    }
-
-    // KẾT THÚC VÀ LƯU ĐIỂM
-    function ketThucBaiThi() {
       document.getElementById('quiz-screen').classList.add('hidden');
       document.getElementById('result-screen').classList.remove('hidden');
 
@@ -381,14 +421,14 @@
       document.getElementById('result-score').textContent = score;
       document.getElementById('result-time').textContent = formattedTime;
 
-      luuLênFirebase(playerName, score, usedTimeInSeconds, formattedTime);
+      luuLenFirebase(playerName, score, usedTimeInSeconds, formattedTime);
     }
 
-    // LƯU ĐIỂM & ĐỒNG BỘ TOP 10
-    function luuLênFirebase(name, scoreVal, timeSec, formattedTime) {
+    // LƯU LÊN FIREBASE
+    function luuLenFirebase(name, scoreVal, timeSec, formattedTime) {
       if (!db) {
         document.getElementById('leaderboard-body').innerHTML = 
-          '<tr><td colspan="4" style="text-align:center;">Không thể kết nối Firebase.</td></tr>';
+          '<tr><td colspan="4" style="text-align:center;">Không kết nối được Firebase.</td></tr>';
         return;
       }
 
@@ -406,7 +446,7 @@
       });
     }
 
-    // TẢI VÀ DỌN DẸP TOP 10
+    // DỌN DẸP LƯU TOP 10
     function capNhatBXH() {
       if (!db) return;
 
@@ -423,14 +463,12 @@
           list.push({ id: key, ...data[key] });
         }
 
-        // Sắp xếp: Điểm cao > Thời gian ít > Lượt chơi trước
         list.sort((a, b) => {
           if (b.score !== a.score) return b.score - a.score;
           if (a.timeUsed !== b.timeUsed) return a.timeUsed - b.timeUsed;
           return a.timestamp - b.timestamp;
         });
 
-        // Tự động xóa ngoài Top 10 trên Firebase
         if (list.length > 10) {
           const deletePromises = [];
           for (let i = 10; i < list.length; i++) {
@@ -463,5 +501,5 @@
     }
   </script>
 </body>
-        </html>
+  </html>
   
