@@ -31,7 +31,7 @@
       <div class="flex items-center gap-4">
         <div class="flex items-center bg-gray-100 rounded-lg px-3 py-1.5 border border-gray-200">
           <svg class="w-5 h-5 text-gray-500 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-          <span id="timer" class="font-mono font-bold text-lg text-red-600">20:00</span>
+          <span id="timer" class="font-mono font-bold text-lg text-red-600">30:00</span>
         </div>
         <button id="btn-submit-top" onclick="confirmSubmit()" class="bg-blue-600 hover:bg-blue-700 text-white font-medium py-1.5 px-4 rounded-lg transition-colors shadow-sm">
           Nộp Bài
@@ -41,10 +41,10 @@
   </header>
 
   <!-- Giao diện chính -->
-  <main class="flex-1 max-w-7xl mx-auto w-full flex flex-col md:flex-row overflow-hidden">
+  <main class="flex-1 max-w-7xl mx-auto w-full flex flex-col md:flex-row overflow-hidden relative">
     
     <!-- Cột trái: Nội dung câu hỏi -->
-    <div id="quiz-container" class="flex-1 overflow-y-auto p-4 sm:p-6 bg-gray-50 relative pb-24">
+    <div id="quiz-container" class="flex-1 overflow-y-auto p-4 sm:p-6 bg-gray-50 relative pb-32">
       <div id="questions-wrapper" class="max-w-3xl mx-auto space-y-6">
         <!-- Câu hỏi render tại đây -->
       </div>
@@ -56,10 +56,10 @@
       </div>
 
       <!-- Bảng kết quả -->
-      <div id="result-board" class="hidden max-w-3xl mx-auto mt-8 bg-white rounded-2xl shadow-xl p-6 sm:p-8 text-center border-t-4 border-blue-500">
+      <div id="result-board" class="hidden max-w-3xl mx-auto mt-8 bg-white rounded-2xl shadow-xl p-6 sm:p-8 text-center border-t-4 border-blue-500 mb-12">
         <h2 class="text-3xl font-bold text-gray-800 mb-6">Kết Quả Bài Thi</h2>
         
-        <!-- Khung hiển thị chỉ số kết quả -->
+        <!-- Chỉ số kết quả -->
         <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 my-6">
           <div class="bg-blue-50 rounded-2xl p-4 border border-blue-100 flex flex-col items-center justify-center">
             <p class="text-gray-500 text-xs uppercase font-bold tracking-wider">Điểm Số (Thang 10)</p>
@@ -77,20 +77,20 @@
 
         <p id="result-message" class="text-lg text-gray-700 font-medium my-6"></p>
 
-        <button onclick="initQuiz()" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 px-8 rounded-xl shadow-md transition-all">
+        <button onclick="initQuiz()" class="w-full sm:w-auto bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3.5 px-8 rounded-xl shadow-md transition-all active:scale-95">
           🔄 Làm Lại Đề Mới (Xáo Trộn)
         </button>
       </div>
     </div>
 
     <!-- Cột phải: Bảng điều hướng -->
-    <div class="w-full md:w-72 bg-white border-l border-gray-200 flex flex-col flex-shrink-0 z-10 md:static fixed bottom-0 left-0 right-0 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.1)] md:shadow-none h-40 md:h-auto">
-      <div class="p-3 bg-gray-50 border-b border-gray-200 flex justify-between items-center cursor-pointer md:cursor-auto" onclick="toggleNavMobile()">
-        <h3 class="font-bold text-gray-700 text-sm uppercase tracking-wider">Danh sách câu hỏi</h3>
-        <span class="md:hidden text-blue-600 text-sm font-semibold" id="nav-toggle-text">Mở rộng ▴</span>
+    <div class="w-full md:w-72 bg-white border-t md:border-t-0 md:border-l border-gray-200 flex flex-col flex-shrink-0 z-30 md:static fixed bottom-0 left-0 right-0 shadow-[0_-4px_10px_rgba(0,0,0,0.1)] md:shadow-none">
+      <div class="p-3 bg-gray-100 md:bg-gray-50 border-b border-gray-200 flex justify-between items-center cursor-pointer md:cursor-auto" onclick="toggleNavMobile()">
+        <h3 class="font-bold text-gray-700 text-xs md:text-sm uppercase tracking-wider">Danh sách câu hỏi</h3>
+        <span class="md:hidden text-blue-600 text-xs font-semibold bg-blue-50 px-2 py-1 rounded border border-blue-200" id="nav-toggle-text">Mở rộng ▴</span>
       </div>
       
-      <div id="nav-grid" class="flex-1 overflow-y-auto p-4 hidden md:block bg-white transition-all">
+      <div id="nav-grid" class="flex-1 overflow-y-auto p-4 hidden md:block max-h-60 md:max-h-none bg-white transition-all">
         <div class="grid grid-cols-5 gap-2" id="nav-buttons">
           <!-- Bảng câu hỏi -->
         </div>
@@ -111,7 +111,6 @@
   </div>
 
   <script>
-    // NGÂN HÀNG ĐỀ DỰ TRỮ (Đáp án đúng luôn nằm ở vị trí đầu tiên [0], hệ thống sẽ tự động xáo trộn)
     const dbQuestions = [
       { q: "Tết Trung Thu diễn ra vào ngày Âm lịch nào hàng năm?", o: ["Rằm tháng Tám", "Rằm tháng Bảy", "Mùng 1 tháng Tám", "Rằm tháng Chạp"] },
       { q: "Nhân vật nào ngồi dưới gốc cây đa trên mặt trăng?", o: ["Chú Cuội", "Thạch Sanh", "Chử Đồng Tử", "Thánh Gióng"] },
@@ -155,11 +154,12 @@
       { q: "Đèn cù (đèn ông sư) được làm từ nguyên liệu gì?", o: ["Giấy bóng kính, tre và có bánh xe", "Vỏ hộp xà phòng", "Lon bia cắt mỏng", "Vỏ bưởi khoét ruột"] }
     ];
 
-    const QUESTIONS_PER_QUIZ = 30; // Số câu hỏi mỗi lần thi
+    const QUESTIONS_PER_QUIZ = 30;
+    const QUIZ_TIME_MINUTES = 30; // Cấu hình thời gian thi 30 phút
 
     let questions = [];
     let userAnswers = {};
-    let timeSeconds = 20 * 60;
+    let timeSeconds = QUIZ_TIME_MINUTES * 60;
     let timerInterval;
     let isSubmitted = false;
 
@@ -181,16 +181,14 @@
     function initQuiz() {
       isSubmitted = false;
       userAnswers = {};
-      timeSeconds = 20 * 60;
+      timeSeconds = QUIZ_TIME_MINUTES * 60;
       document.getElementById('result-board').classList.add('hidden');
       document.getElementById('bottom-submit-zone').classList.remove('hidden');
       document.getElementById('btn-submit-top').classList.remove('hidden');
       
-      // Xáo đề & rút đúng 30 câu
       let shuffledDb = shuffle(dbQuestions);
       let selectedDb = shuffledDb.slice(0, Math.min(QUESTIONS_PER_QUIZ, dbQuestions.length));
       
-      // Xáo trộn vị trí đáp án
       questions = selectedDb.map((q, id) => {
         let opts = q.o.map((text, index) => ({ text, isCorrect: index === 0 }));
         return { id, q: q.q, opts: shuffle(opts) };
@@ -198,7 +196,8 @@
 
       renderQuestions();
       renderNavigator();
-      window.scrollTo(0, 0);
+      
+      document.getElementById('quiz-container').scrollTo(0, 0);
 
       clearInterval(timerInterval);
       document.getElementById('timer').textContent = formatTime(timeSeconds);
@@ -261,8 +260,7 @@
     function scrollToQuestion(index) {
       const el = document.getElementById(`question-card-${index}`);
       if(el) {
-        const y = el.getBoundingClientRect().top + window.scrollY - 80;
-        window.scrollTo({top: y, behavior: 'smooth'});
+        el.scrollIntoView({ behavior: 'smooth', block: 'center' });
       }
       if (window.innerWidth < 768) {
         document.getElementById('nav-grid').classList.add('hidden');
@@ -334,12 +332,11 @@
         fbEl.classList.remove('hidden');
       });
 
-      // TÍNH ĐIỂM THEO THANG ĐIỂM 10 (Làm tròn 1 chữ số thập phân)
       let score10 = Math.round((score / total) * 100) / 10;
 
       document.getElementById('score-10-display').innerText = `${score10}`;
       document.getElementById('score-display').innerText = `${score}/${total}`;
-      document.getElementById('time-taken').innerText = formatTime((20 * 60) - timeSeconds);
+      document.getElementById('time-taken').innerText = formatTime((QUIZ_TIME_MINUTES * 60) - timeSeconds);
       
       let msg = score10 >= 9 ? "🏆 Tốt lắm! Xuất sắc tuyệt đối!" : score10 >= 8 ? "🌟 Rất giỏi! Kiến thức của bạn rất vững." : score10 >= 5 ? "👍 Khá tốt! Đạt yêu cầu." : "💪 Hãy làm lại lần nữa để cải thiện điểm nhé!";
       document.getElementById('result-message').innerText = msg;
