@@ -6,7 +6,7 @@
   <title>Hệ Thống Thi Trắc Nghiệm - Tết Trung Thu</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <style>
-    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
     body { font-family: 'Inter', sans-serif; background-color: #f3f4f6; }
     .radio-custom:checked + div { border-color: #3b82f6; background-color: #eff6ff; }
     .radio-custom:checked + div .circle { background-color: #3b82f6; border-color: #3b82f6; }
@@ -28,20 +28,44 @@
         <h1 class="font-bold text-lg sm:hidden text-blue-900">Thi Trung Thu</h1>
       </div>
       
-      <div class="flex items-center gap-4">
+      <div class="flex items-center gap-3" id="header-info">
         <div class="flex items-center bg-gray-100 rounded-lg px-3 py-1.5 border border-gray-200">
-          <svg class="w-5 h-5 text-gray-500 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+          <svg class="w-5 h-5 text-gray-500 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
           <span id="timer" class="font-mono font-bold text-lg text-red-600">30:00</span>
         </div>
-        <button id="btn-submit-top" onclick="confirmSubmit()" class="bg-blue-600 hover:bg-blue-700 text-white font-medium py-1.5 px-4 rounded-lg transition-colors shadow-sm">
+        <button id="btn-submit-top" onclick="confirmSubmit()" class="hidden bg-blue-600 hover:bg-blue-700 text-white font-medium py-1.5 px-4 rounded-lg transition-colors shadow-sm">
           Nộp Bài
         </button>
       </div>
     </div>
   </header>
 
-  <!-- Giao diện chính -->
-  <main class="flex-1 max-w-7xl mx-auto w-full flex flex-col md:flex-row overflow-hidden relative">
+  <!-- 1. Màn hình Nhập Thông Tin Thí Sinh (Start Screen) -->
+  <div id="start-screen" class="flex-1 flex items-center justify-center p-4 bg-gradient-to-b from-blue-50 to-indigo-100 overflow-y-auto">
+    <div class="bg-white rounded-3xl shadow-2xl p-6 sm:p-10 max-w-lg w-full text-center border border-indigo-100">
+      <div class="text-5xl mb-3">🥮</div>
+      <h2 class="text-2xl sm:text-3xl font-extrabold text-blue-900 mb-2">Hội Thi Tri Thức Trung Thu</h2>
+      <p class="text-gray-600 text-sm mb-6">Đề thi gồm <b>30 câu hỏi ngẫu nhiên</b> • Thời gian: <b>30 phút</b></p>
+      
+      <div class="mb-6 text-left">
+        <label class="block text-gray-700 font-bold mb-2 text-sm uppercase tracking-wide">Nhập Họ và Tên Thí Sinh:</label>
+        <input type="text" id="player-name-input" placeholder="Ví dụ: Nguyễn Văn A..." class="w-full px-4 py-3.5 border-2 border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all text-gray-800 font-medium">
+        <p id="name-error" class="hidden text-red-500 text-xs mt-1.5 font-medium">⚠️ Vui lòng nhập tên của bạn trước khi bắt đầu thi!</p>
+      </div>
+
+      <div class="space-y-3">
+        <button onclick="startQuiz()" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3.5 px-6 rounded-xl shadow-lg transition-all transform active:scale-95 text-lg">
+          🚀 Bắt Đầu Làm Bài
+        </button>
+        <button onclick="showLeaderboardModal()" class="w-full bg-amber-500 hover:bg-amber-600 text-white font-bold py-3 px-6 rounded-xl shadow transition-all text-sm flex items-center justify-center gap-2">
+          🏆 Xem Bảng Xếp Hạng Top 10
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 2. Giao diện Làm Bài Thi (Ẩn mặc định) -->
+  <main id="quiz-main-content" class="hidden flex-1 max-w-7xl mx-auto w-full flex flex-col md:flex-row overflow-hidden relative">
     
     <!-- Cột trái: Nội dung câu hỏi -->
     <div id="quiz-container" class="flex-1 overflow-y-auto p-4 sm:p-6 bg-gray-50 relative pb-32">
@@ -57,7 +81,8 @@
 
       <!-- Bảng kết quả -->
       <div id="result-board" class="hidden max-w-3xl mx-auto mt-8 bg-white rounded-2xl shadow-xl p-6 sm:p-8 text-center border-t-4 border-blue-500 mb-12">
-        <h2 class="text-3xl font-bold text-gray-800 mb-6">Kết Quả Bài Thi</h2>
+        <h2 class="text-3xl font-bold text-gray-800 mb-2">Kết Quả Bài Thi</h2>
+        <p class="text-gray-500 font-medium mb-6">Thí sinh: <span id="res-player-name" class="text-blue-600 font-bold"></span></p>
         
         <!-- Chỉ số kết quả -->
         <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 my-6">
@@ -77,13 +102,25 @@
 
         <p id="result-message" class="text-lg text-gray-700 font-medium my-6"></p>
 
-        <button onclick="initQuiz()" class="w-full sm:w-auto bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3.5 px-8 rounded-xl shadow-md transition-all active:scale-95">
-          🔄 Làm Lại Đề Mới (Xáo Trộn)
-        </button>
+        <!-- Khối Bảng Xếp Hạng Top 10 trong kết quả -->
+        <div class="mt-8 pt-6 border-t border-gray-200 text-left">
+          <h3 class="text-xl font-bold text-gray-800 mb-4 flex items-center gap-2">
+            🏆 Bảng Xếp Hạng Cao Thủ (Top 10)
+          </h3>
+          <div id="leaderboard-table-container" class="overflow-x-auto rounded-xl border border-gray-200 shadow-sm">
+            <!-- Table render bằng JS -->
+          </div>
+        </div>
+
+        <div class="mt-8 flex flex-col sm:flex-row justify-center gap-4">
+          <button onclick="resetToStartScreen()" class="w-full sm:w-auto bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3.5 px-8 rounded-xl shadow-md transition-all active:scale-95">
+            🔄 Đổi Thí Sinh / Thi Lại
+          </button>
+        </div>
       </div>
     </div>
 
-    <!-- Cột phải: Bảng điều hướng -->
+    <!-- Cột phải: Bảng điều hướng câu hỏi -->
     <div class="w-full md:w-72 bg-white border-t md:border-t-0 md:border-l border-gray-200 flex flex-col flex-shrink-0 z-30 md:static fixed bottom-0 left-0 right-0 shadow-[0_-4px_10px_rgba(0,0,0,0.1)] md:shadow-none">
       <div class="p-3 bg-gray-100 md:bg-gray-50 border-b border-gray-200 flex justify-between items-center cursor-pointer md:cursor-auto" onclick="toggleNavMobile()">
         <h3 class="font-bold text-gray-700 text-xs md:text-sm uppercase tracking-wider">Danh sách câu hỏi</h3>
@@ -104,13 +141,28 @@
       <h3 class="text-xl font-bold text-gray-900 mb-2">Xác nhận nộp bài?</h3>
       <p class="text-gray-600 mb-6" id="unanswered-warning"></p>
       <div class="flex justify-end gap-3">
-        <button onclick="closeModal()" class="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg">Kiểm tra lại</button>
-        <button onclick="submitQuiz()" class="px-4 py-2 bg-blue-600 text-white rounded-lg">Nộp Bài Ngay</button>
+        <button onclick="closeModal()" class="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg font-medium">Kiểm tra lại</button>
+        <button onclick="submitQuiz()" class="px-4 py-2 bg-blue-600 text-white rounded-lg font-medium">Nộp Bài Ngay</button>
       </div>
     </div>
   </div>
 
+  <!-- Modal Bảng Xếp Hạng Pop-up -->
+  <div id="leaderboard-modal" class="hidden fixed inset-0 bg-black/60 z-[100] flex items-center justify-center p-4 backdrop-blur-sm">
+    <div class="bg-white rounded-2xl p-6 w-full max-w-xl shadow-2xl max-h-[85vh] flex flex-col">
+      <div class="flex justify-between items-center pb-4 border-b border-gray-200">
+        <h3 class="text-xl font-bold text-gray-900 flex items-center gap-2">🏆 Bảng Xếp Hạng Top 10</h3>
+        <button onclick="closeLeaderboardModal()" class="text-gray-400 hover:text-gray-600 font-bold text-xl px-2">&times;</button>
+      </div>
+      <div id="modal-leaderboard-container" class="overflow-y-auto my-4 flex-1">
+        <!-- Render danh sách -->
+      </div>
+      <button onclick="closeLeaderboardModal()" class="w-full bg-gray-100 hover:bg-gray-200 text-gray-700 font-bold py-2.5 rounded-xl">Đóng</button>
+    </div>
+  </div>
+
   <script>
+    // NGÂN HÀNG 75 CÂU HỎI TRUNG THU
     const dbQuestions = [
       { q: "Tết Trung Thu diễn ra vào ngày Âm lịch nào hàng năm?", o: ["Rằm tháng Tám", "Rằm tháng Bảy", "Mùng 1 tháng Tám", "Rằm tháng Chạp"] },
       { q: "Nhân vật nào ngồi dưới gốc cây đa trên mặt trăng?", o: ["Chú Cuội", "Thạch Sanh", "Chử Đồng Tử", "Thánh Gióng"] },
@@ -148,20 +200,57 @@
       { q: "Bài hát nào có câu: 'Bóng trăng trắng ngà, có cây đa to'?", o: ["Thằng Cuội", "Chiếc đèn ông sao", "Rước đèn tháng Tám", "Gọi trăng"] },
       { q: "Nhân vật nào hay đi theo trêu chọc Lân trong lúc múa?", o: ["Ông Địa bụng phệ", "Chú Tễu", "Tôn Ngộ Không", "Thần Tài"] },
       { q: "Vì sao múa Lân thường múa 2 con (Song Lân)?", o: ["Tượng trưng cho sự hài hòa, phu thê, may mắn", "Vì 1 con nhảy không đẹp", "Để thi đấu với nhau", "Vì Lân luôn sinh đôi"] },
-      { q: "Trái nào sau đây thường được tỉa thành hình hoa trong mâm cỗ?", o: ["Trái thanh long / dưa hấu", "Trái chuối", "Trái sầu riêng", "Trái dừa"] },
+      { q: "Trái nào sau đây thường được tỉa thành hình hoa trong mâm cỗ?", o: ["Trái dưa hấu / thanh long", "Trái chuối", "Trái sầu riêng", "Trái dừa"] },
       { q: "Món xôi nào thường được cúng trong dịp Trung Thu ở nhiều vùng Bắc Bộ?", o: ["Xôi cốm", "Xôi gấc", "Xôi xéo", "Xôi đỗ đen"] },
       { q: "Trong dịp Trung thu, người ta thường uống nước gì cùng với ăn bánh?", o: ["Trà xanh / Trà mạn", "Nước ngọt có gas", "Rượu vang", "Cà phê"] },
-      { q: "Đèn cù (đèn ông sư) được làm từ nguyên liệu gì?", o: ["Giấy bóng kính, tre và có bánh xe", "Vỏ hộp xà phòng", "Lon bia cắt mỏng", "Vỏ bưởi khoét ruột"] }
+      { q: "Đèn cù (đèn ông sư) được làm từ nguyên liệu gì?", o: ["Giấy bóng kính, tre và có bánh xe", "Vỏ hộp xà phòng", "Lon bia cắt mỏng", "Vỏ bưởi khoét ruột"] },
+      // CÂU HỎI MỚI BỔ SUNG
+      { q: "Bánh nướng hình vuông trong mâm cỗ Trung Thu tượng trưng cho điều gì?", o: ["Đất (mặt đất)", "Trời (bầu trời)", "Mặt trăng", "Thần linh"] },
+      { q: "Món bánh truyền thống người Hàn Quốc tự tay làm dịp Trung Thu (Chuseok) là gì?", o: ["Bánh Songpyeon (bánh bán nguyệt)", "Kimchi", "Bánh Tokbokki", "Kimbap"] },
+      { q: "Theo truyền thuyết, Thỏ Ngọc trên Cung Trăng làm công việc gì?", o: ["Giã thuốc trường sinh", "Trồng cây đa", "Nấu bánh dẻo", "Múa lân"] },
+      { q: "Múa Lân - Sư - Rồng thường dùng nhạc cụ nào làm chủ đạo?", o: ["Trống, chiêng, xèng", "Đàn bầu", "Sáo trúc", "Đàn nhị"] },
+      { q: "Lễ hội ngắm trăng ở Nhật Bản gọi là gì?", o: ["Tsukimi", "Chuseok", "Setsubun", "Tanabata"] },
+      { q: "Linh vật 'Kỳ Lân' trong múa Lân biểu tượng cho điều gì?", o: ["Điềm lành, sự may mắn và thái bình", "Sức mạnh chiến tranh", "Sự giàu có vật chất", "Thời tiết mưa bão"] },
+      { q: "Cây đa của chú Cuội có khả năng đặc biệt gì?", o: ["Chữa lành bệnh tật, cải tử hoàn sinh", "Mọc ra vàng bạc", "Tự biết nói chuyện", "Biết biến thành người"] },
+      { q: "Bài hát nào có câu: 'Tết Trung Thu rước đèn đi chơi, em rước đèn đi khắp phố phường'?", o: ["Rước đèn tháng Tám", "Chiếc đèn ông sao", "Thằng Cuội", "Đêm trung thu"] },
+      { q: "Đèn lồng Hội An thường nổi tiếng làm từ chất liệu vải gì?", o: ["Lụa tơ tằm", "Giấy bóng kính", "Vải nỉ", "Vải bao tải"] },
+      { q: "Nhân bánh nướng Trung Thu 'Trứng muối' hình tròn tượng trưng cho gì?", o: ["Trăng tròn đầy đặn", "Mặt trời", "Ngọc trai", "Hạt ngọc trời"] },
+      { q: "Theo dân gian, ngắm trăng Rằm tháng 8 nếu trăng sáng rõ thì báo hiệu điều gì?", o: ["Mùa màng bội thu, trúng vụ", "Mưa lũ thiên tai", "Thời tiết giá rét", "Hạn hán"] },
+      { q: "Loại hoa thơm nở vào mùa thu thường được đem ướp trà thưởng bánh Trung thu?", o: ["Hoa cúc / Hoa nhài", "Hoa hướng dương", "Hoa phượng", "Hoa đào"] },
+      { q: "Trò chơi dân gian nào hay tổ chức cho thiếu nhi trong đêm rước đèn?", o: ["Bịt mắt bắt dê, kéo co", "Đua xe", "Cờ vua", "Bắn cung"] },
+      { q: "Bộ tứ linh trong văn hóa dân gian gồm những linh vật nào?", o: ["Long, Lân, Quy, Phụng", "Hổ, Báo, Cáo, Chồn", "Trâu, Bò, Ngựa, Dê", "Mèo, Chó, Gà, Vịt"] },
+      { q: "Trung Thu tại Singapore nổi tiếng nhất ở khu phố trang trí đèn lồng nào?", o: ["Chinatown", "Orchard Road", "Sentosa", "Little India"] },
+      { q: "Bánh Tsukimi Dango của Nhật dịp ngắm trăng được xếp theo dạng gì?", o: ["Các viên tròn xếp thành hình tháp", "Hình con cá", "Hình ngôi sao", "Hình chiếc lá"] },
+      { q: "Ông Địa trong múa Lân đại diện cho vị thần nào?", o: ["Thổ Địa (vị thần cai quản đất đai, may mắn)", "Thần Tài", "Thần Mưa", "Thần Sét"] },
+      { q: "Chiếc đèn lồng hình 'Cá Chép' mang ý nghĩa truyền thuyết nào?", o: ["Cá chép vượt vũ môn hóa rồng", "Sự tích bánh chưng bánh giầy", "Sự tích dưa hấu", "Thạch Sanh"] },
+      { q: "Quả hồng chín đỏ trong mâm cỗ Trung thu biểu tượng cho điều gì?", o: ["Mọi sự như ý, thành công tốt đẹp", "Sự chua cay", "Sự lạnh giá", "Sự may mắn trường thọ"] },
+      { q: "Người xưa ngắm trăng Trung Thu còn để làm gì ngoài thưởng ngoạn?", o: ["Dự đoán điềm báo thời tiết và mùa màng", "Đo thủy triều", "Tính lịch âm", "Đếm sao"] },
+      { q: "Thỏ Ngọc sống trên cung trăng cùng nhân vật nào?", o: ["Hằng Nga", "Tôn Ngộ Không", "Trư Bát Giới", "Ngưu Lang"] },
+      { q: "Bài hát nào có câu: 'Bắt đẩu cùng với sao Mai, chiếc đèn ông sao sao 5 cánh tươi màu'?", o: ["Chiếc đèn ông sao", "Thằng Cuội", "Rước đèn tháng Tám", "Vui đến trường"] },
+      { q: "Thời điểm tốt nhất để 'Phá cỗ Trung Thu' là khi nào?", o: ["Khi trăng lên cao nhất đỉnh đầu", "Lúc giữa trưa", "Lúc sáng sớm", "Lúc hoàng hôn"] },
+      { q: "Sự tích Chú Cuội gắn liền với nguyên nhân khiến cây đa thần bay lên trời là gì?", o: ["Vợ Cuội tưới nước bẩn vào gốc cây", "Kẻ thù chặt cây", "Trời bão lớn", "Thỏ ngọc đào cây"] },
+      { q: "Vì sao bánh Trung Thu truyền thống hay làm thành 1 cặp (1 vuông 1 tròn)?", o: ["Tượng trưng cho Âm Dương, Đất Trời dung hòa", "Để dễ đóng hộp", "Tiết kiệm nguyên liệu", "Thói quen ngẫu nhiên"] },
+      { q: "Mặt nạ giấy bồi truyền thống hay vẽ nhân vật nào?", o: ["Chú Tễu, Ông Địa, Tôn Ngộ Không", "Siêu nhân", "Robot", "Quái vật"] },
+      { q: "Ngày Rằm tháng Tám Âm lịch có đặc điểm gì về mặt trăng?", o: ["Tròn nhất và sáng nhất trong năm", "Khuyết một nửa", "Gần Trái Đất nhất", "Có màu đỏ"] },
+      { q: "Lễ hội Trung Thu ở Malaysia gắn liền với bánh Trung thu nhân quả gì đặc sản?", o: ["Sầu riêng", "Măng cụt", "Dừa", "Chôm chôm"] },
+      { q: "Tên gọi khác của đèn kéo quân trong dân gian là gì?", o: ["Đèn Âm Dương", "Đèn Bươm Bướm", "Đèn Mặt Trời", "Đèn Hoa Đăng"] },
+      { q: "Hình ảnh chú Cuội ngồi dưới gốc cây đa thể hiện tâm tư gì?", o: ["Nỗi nhớ nhà, nhớ quê hương đất mẹ", "Sự tức giận", "Sự vui mừng", "Lòng tham vọng"] },
+      { q: "Trường mầm non hay tổ chức hoạt động gì nhất dịp Trung thu?", o: ["Làm đèn lồng, phá cỗ, rước đèn", "Thi cắm trại", "Thi chạy cự cự cự ly dài", "Đi leo núi"] },
+      { q: "Vì sao nhân bánh thập cẩm Trung thu thường có lá chanh thái chỉ?", o: ["Tạo mùi thơm dậy vị bùi cho mỡ đường, hạt dưa", "Cho bánh có màu xanh", "Để bánh lâu hỏng", "Để giảm độ ngọt"] },
+      { q: "Hình ảnh trăng Rằm Trung thu tròn đầy biểu tượng cho giá trị gia đình nào?", o: ["Sự sum họp, đoàn viên trọn vẹn", "Sự chia xa", "Sự thi đua", "Sự độc lập"] },
+      { q: "Đèn hoa đăng thả trên sông đêm Trung thu mang ý nghĩa gì?", o: ["Cầu bình an, may mắn và ước nguyện thành sự thực", "Để chiếu sáng cho cá", "Để đo dòng nước", "Trang trí bờ sông"] },
+      { q: "Tiếng trống múa Lân đêm Trung thu có tác dụng tâm linh gì theo quan niệm cổ?", o: ["Xua đuổi tà ma, mang lại may mắn chấn hưng", "Để báo giờ", "Gọi mưa", "Tập hợp dân làng"] }
     ];
 
     const QUESTIONS_PER_QUIZ = 30;
-    const QUIZ_TIME_MINUTES = 30; // Cấu hình thời gian thi 30 phút
+    const QUIZ_TIME_MINUTES = 30;
 
     let questions = [];
     let userAnswers = {};
     let timeSeconds = QUIZ_TIME_MINUTES * 60;
     let timerInterval;
     let isSubmitted = false;
+    let playerName = "";
 
     function shuffle(array) {
       const arr = [...array];
@@ -176,6 +265,24 @@
       let m = Math.floor(secs / 60);
       let s = secs % 60;
       return `${m < 10 ? '0'+m : m}:${s < 10 ? '0'+s : s}`;
+    }
+
+    function startQuiz() {
+      const input = document.getElementById('player-name-input');
+      const error = document.getElementById('name-error');
+      
+      if (!input.value.trim()) {
+        error.classList.remove('hidden');
+        return;
+      }
+      error.classList.add('hidden');
+      playerName = input.value.trim();
+
+      document.getElementById('start-screen').classList.add('hidden');
+      document.getElementById('quiz-main-content').classList.remove('hidden');
+      document.getElementById('btn-submit-top').classList.remove('hidden');
+
+      initQuiz();
     }
 
     function initQuiz() {
@@ -285,7 +392,7 @@
       const answeredCount = Object.keys(userAnswers).length;
       const total = questions.length;
       if (answeredCount < total) {
-        document.getElementById('unanswered-warning').innerHTML = `Bạn mới làm được <b>${answeredCount}/${total}</b> câu. Vẫn còn <span class="text-red-500 font-bold">${total - answeredCount}</span> câu chưa chọn.`;
+        document.getElementById('unanswered-warning').innerHTML = `Thí sinh <b>${playerName}</b> mới làm được <b>${answeredCount}/${total}</b> câu. Vẫn còn <span class="text-red-500 font-bold">${total - answeredCount}</span> câu chưa chọn.`;
       } else {
         document.getElementById('unanswered-warning').innerHTML = `Bạn đã hoàn thành 100% câu hỏi. Bạn có chắc chắn muốn nộp bài?`;
       }
@@ -333,20 +440,106 @@
       });
 
       let score10 = Math.round((score / total) * 100) / 10;
+      let timeSpentSeconds = (QUIZ_TIME_MINUTES * 60) - timeSeconds;
 
+      document.getElementById('res-player-name').innerText = playerName;
       document.getElementById('score-10-display').innerText = `${score10}`;
       document.getElementById('score-display').innerText = `${score}/${total}`;
-      document.getElementById('time-taken').innerText = formatTime((QUIZ_TIME_MINUTES * 60) - timeSeconds);
+      document.getElementById('time-taken').innerText = formatTime(timeSpentSeconds);
       
-      let msg = score10 >= 9 ? "🏆 Tốt lắm! Xuất sắc tuyệt đối!" : score10 >= 8 ? "🌟 Rất giỏi! Kiến thức của bạn rất vững." : score10 >= 5 ? "👍 Khá tốt! Đạt yêu cầu." : "💪 Hãy làm lại lần nữa để cải thiện điểm nhé!";
+      let msg = score10 >= 9 ? "🏆 Xuất sắc tuyệt đối! Bạn là cao thủ kiến thức Trung thu!" : score10 >= 8 ? "🌟 Rất giỏi! Kiến thức của bạn rất vững vàng." : score10 >= 5 ? "👍 Khá tốt! Đã vượt qua kỳ thi." : "💪 Hãy làm lại lần nữa để cải thiện điểm nhé!";
       document.getElementById('result-message').innerText = msg;
       
+      // LƯU KẾT QUẢ VÀO BẢNG XẾP HẠNG
+      saveScoreToLeaderboard(playerName, score10, score, timeSpentSeconds);
+      renderLeaderboard('leaderboard-table-container');
+
       const rb = document.getElementById('result-board');
       rb.classList.remove('hidden');
       rb.scrollIntoView({ behavior: 'smooth' });
     }
 
-    initQuiz();
+    // XỬ LÝ BẢNG XẾP HẠNG (LEADERBOARD)
+    function getLeaderboard() {
+      return JSON.parse(localStorage.getItem('trung_thu_quiz_top10') || '[]');
+    }
+
+    function saveScoreToLeaderboard(name, score10, correctCount, timeSecs) {
+      let list = getLeaderboard();
+      list.push({
+        name: name,
+        score10: score10,
+        correctCount: correctCount,
+        timeSecs: timeSecs,
+        date: new Date().toLocaleDateString('vi-VN')
+      });
+
+      // Sắp xếp: Ưu tiên Điểm cao nhất -> Nhanh nhất (timeSecs nhỏ nhất)
+      list.sort((a, b) => {
+        if (b.score10 !== a.score10) return b.score10 - a.score10;
+        return a.timeSecs - b.timeSecs;
+      });
+
+      // Lấy Top 10
+      list = list.slice(0, 10);
+      localStorage.setItem('trung_thu_quiz_top10', JSON.stringify(list));
+    }
+
+    function renderLeaderboard(containerId) {
+      const container = document.getElementById(containerId);
+      const list = getLeaderboard();
+
+      if (list.length === 0) {
+        container.innerHTML = `<div class="p-4 text-center text-gray-500 font-medium text-sm">Chưa có ai trong Bảng xếp hạng. Hãy là người đầu tiên!</div>`;
+        return;
+      }
+
+      let html = `
+        <table class="w-full text-sm text-left text-gray-700">
+          <thead class="text-xs text-gray-700 uppercase bg-gray-100">
+            <tr>
+              <th class="px-3 py-3 text-center">Hạng</th>
+              <th class="px-3 py-3">Thí Sinh</th>
+              <th class="px-3 py-3 text-center">Điểm (10)</th>
+              <th class="px-3 py-3 text-center">Thời Gian</th>
+            </tr>
+          </thead>
+          <tbody>
+      `;
+
+      list.forEach((item, index) => {
+        let badge = index === 0 ? "🥇" : index === 1 ? "🥈" : index === 2 ? "🥉" : `#${index + 1}`;
+        let rowBg = index % 2 === 0 ? "bg-white" : "bg-gray-50";
+        if (item.name === playerName && isSubmitted) rowBg = "bg-yellow-50 font-bold";
+
+        html += `
+          <tr class="${rowBg} border-b border-gray-100">
+            <td class="px-3 py-3 text-center text-base">${badge}</td>
+            <td class="px-3 py-3 font-semibold text-gray-900">${item.name}</td>
+            <td class="px-3 py-3 text-center font-bold text-blue-600">${item.score10}</td>
+            <td class="px-3 py-3 text-center font-mono text-amber-600">${formatTime(item.timeSecs)}</td>
+          </tr>
+        `;
+      });
+
+      html += `</tbody></table>`;
+      container.innerHTML = html;
+    }
+
+    function showLeaderboardModal() {
+      renderLeaderboard('modal-leaderboard-container');
+      document.getElementById('leaderboard-modal').classList.remove('hidden');
+    }
+
+    function closeLeaderboardModal() {
+      document.getElementById('leaderboard-modal').classList.add('hidden');
+    }
+
+    function resetToStartScreen() {
+      document.getElementById('quiz-main-content').classList.add('hidden');
+      document.getElementById('btn-submit-top').classList.add('hidden');
+      document.getElementById('start-screen').classList.remove('hidden');
+    }
   </script>
 </body>
 </html>
