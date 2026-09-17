@@ -5,10 +5,13 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Trắc Nghiệm Trung Thu Việt Nam 🥮</title>
   
-  <!-- Firebase SDK v8 -->
-  <script src="https://dulieu-327e5-default-rtdb.asia-southeast1.firebasedatabase.app"></script>
-  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
-
+  const firebaseConfig = {
+  databaseURL: "https://dulieu-327e5-default-rtdb.asia-southeast1.firebasedatabase.app"
+};
+firebase.initializeApp(firebaseConfig);
+// Ép đường dẫn đúng region:
+const db = firebase.database("https://dulieu-327e5-default-rtdb.asia-southeast1.firebasedatabase.app");
+  
   <style>
     * {
       box-sizing: border-box;
